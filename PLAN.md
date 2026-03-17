@@ -30,6 +30,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 
 - [x] 2026-03-17: Created `PLAN.md` after investigating the cycle KPI route, action placement, data source reuse, and current test structure.
 - [x] 2026-03-17: Removed mobile-specific implementation and QA scope from the plan per product clarification; this feature only needs desktop handling.
+- [x] 2026-03-17: Added open-core import guidance to avoid depending on premium-only modules that are not present in this edition.
 
 ## Test Log
 
@@ -39,6 +40,10 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 
 ### Frontend integration points already identified
 
+- `apps/web/tsconfig.json`
+  - `@/plane-web/*` resolves to `ce/*` in this edition.
+  - New code must respect that alias and avoid direct imports from premium-only `ee/*` paths.
+  - If an integration point looks premium, prefer an existing `@/plane-web/*` export or a local `core/*` import.
 - `apps/web/core/components/cycles/list/cycle-list-item-action.tsx`
   - Current cycle row action strip.
   - Favorite star and `CycleQuickActions` already live here.
@@ -77,6 +82,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - No frontend automated test suite was found for `apps/web`:
   - `apps/web/package.json` has no `test` script.
   - No Jest/Vitest/Playwright config files were found in the repo during investigation.
+- Existing open-core import pattern includes CE stubs/no-op exports for features that are premium elsewhere.
+  - Example: `apps/web/ce/components/views/publish/use-view-publish.tsx` provides a fallback implementation for a `@/plane-web/*` import.
 - Because this feature adds frontend navigation and page rendering, implementation must include frontend automated test support before the feature can be considered fully covered.
 
 ## Implementation Checklist
@@ -91,6 +98,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 ### 2. KPI action entry on the cycles list
 
 - [ ] Update `apps/web/core/components/cycles/list/cycle-list-item-action.tsx`.
+- [ ] Keep imports aligned with the edition-safe pattern: use `core/*` or `@/plane-web/*` aliases that resolve in CE, and do not import `ee/*` directly.
 - [ ] Insert a new `KPI` action between `FavoriteStar` and `CycleQuickActions` in render order.
 - [ ] Ensure clicking `KPI` does not trigger the parent row click behavior.
 - [ ] Ensure clicking `KPI` does not toggle `peekCycle` accidentally.
@@ -102,6 +110,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 ### 3. New KPI route and page shell
 
 - [ ] Create `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx`.
+- [ ] Reuse existing open-core-safe imports only; if a shared extension point is needed, prefer an existing `@/plane-web/*` CE export over a premium-only file path.
 - [ ] Reuse the existing cycle detail layout inherited from `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/layout.tsx`.
 - [ ] Reuse existing route params: `workspaceSlug`, `projectId`, and `cycleId`.
 - [ ] Set an appropriate browser/page title if the page pattern supports it.
