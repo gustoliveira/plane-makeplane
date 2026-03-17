@@ -31,10 +31,13 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Created `PLAN.md` after investigating the cycle KPI route, action placement, data source reuse, and current test structure.
 - [x] 2026-03-17: Removed mobile-specific implementation and QA scope from the plan per product clarification; this feature only needs desktop handling.
 - [x] 2026-03-17: Added open-core import guidance to avoid depending on premium-only modules that are not present in this edition.
+- [x] 2026-03-17: Implemented the desktop KPI action button in `apps/web/core/components/cycles/list/cycle-list-item-action.tsx`; the button now routes to the future `/kpi` screen, stays CE-safe, and is intentionally visible to any cycle viewer because it is navigation-only. Touched files: `apps/web/core/components/cycles/list/cycle-list-item-action.tsx`, `PLAN.md`.
 
 ## Test Log
 
-- [ ] No implementation tests run yet. Update this section after each implementation step.
+- [x] 2026-03-17: Attempted `pnpm exec eslint core/components/cycles/list/cycle-list-item-action.tsx` from `apps/web`; failed because `pnpm` is not installed in the shell environment.
+- [x] 2026-03-17: Attempted `npm exec pnpm -- exec eslint core/components/cycles/list/cycle-list-item-action.tsx` from `apps/web`; failed because the local ESLint config package `@plane/eslint-config/next.js` is unavailable without workspace dependencies installed.
+- [x] 2026-03-17: Attempted `npm exec pnpm -- check:types` from `apps/web`; failed because `tsc` is unavailable and the workspace `node_modules` are not installed.
 
 ## Investigation Summary
 
@@ -97,15 +100,15 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 
 ### 2. KPI action entry on the cycles list
 
-- [ ] Update `apps/web/core/components/cycles/list/cycle-list-item-action.tsx`.
-- [ ] Keep imports aligned with the edition-safe pattern: use `core/*` or `@/plane-web/*` aliases that resolve in CE, and do not import `ee/*` directly.
-- [ ] Insert a new `KPI` action between `FavoriteStar` and `CycleQuickActions` in render order.
-- [ ] Ensure clicking `KPI` does not trigger the parent row click behavior.
-- [ ] Ensure clicking `KPI` does not toggle `peekCycle` accidentally.
-- [ ] Route to `/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/kpi`.
-- [ ] Keep the action styling visually consistent with the existing row actions.
+- [x] Update `apps/web/core/components/cycles/list/cycle-list-item-action.tsx`.
+- [x] Keep imports aligned with the edition-safe pattern: use `core/*` or `@/plane-web/*` aliases that resolve in CE, and do not import `ee/*` directly.
+- [x] Insert a new `KPI` action between `FavoriteStar` and `CycleQuickActions` in render order.
+- [x] Ensure clicking `KPI` does not trigger the parent row click behavior.
+- [x] Ensure clicking `KPI` does not toggle `peekCycle` accidentally.
+- [x] Route to `/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/kpi`.
+- [x] Keep the action styling visually consistent with the existing row actions.
 - [ ] Verify layout when the favorite star is hidden (for example archived or permission-limited states).
-- [ ] Decide and document whether `KPI` should be visible for read-only users; keep the final behavior explicit in code and tests.
+- [x] Decide and document whether `KPI` should be visible for read-only users; keep the final behavior explicit in code and tests.
 
 ### 3. New KPI route and page shell
 

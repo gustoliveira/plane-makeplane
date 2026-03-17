@@ -202,6 +202,13 @@ export const CycleListItemAction: FC<Props> = observer((props) => {
     }
   };
 
+  const openCycleKpi = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    router.push(`/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/kpi`, { showProgress: false });
+  };
+
   return (
     <>
       <TransferIssuesModal
@@ -331,6 +338,13 @@ export const CycleListItemAction: FC<Props> = observer((props) => {
           selected={!!cycleDetails.is_favorite}
         />
       )}
+      <button
+        type="button"
+        className="hidden md:flex h-6 flex-shrink-0 items-center rounded bg-custom-background-80/70 px-2 text-xs font-medium text-custom-text-300 transition-colors hover:bg-custom-background-80 hover:text-custom-text-100"
+        onClick={openCycleKpi}
+      >
+        KPI
+      </button>
       <div className="hidden md:block">
         <CycleQuickActions
           parentRef={parentRef}
