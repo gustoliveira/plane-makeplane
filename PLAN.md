@@ -29,6 +29,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 ## Change Log
 
 - [x] 2026-03-17: Created `PLAN.md` after investigating the cycle KPI route, action placement, data source reuse, and current test structure.
+- [x] 2026-03-17: Removed mobile-specific implementation and QA scope from the plan per product clarification; this feature only needs desktop handling.
 
 ## Test Log
 
@@ -96,7 +97,6 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [ ] Route to `/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/kpi`.
 - [ ] Keep the action styling visually consistent with the existing row actions.
 - [ ] Verify layout when the favorite star is hidden (for example archived or permission-limited states).
-- [ ] Verify layout when the quick action menu is hidden on smaller breakpoints.
 - [ ] Decide and document whether `KPI` should be visible for read-only users; keep the final behavior explicit in code and tests.
 
 ### 3. New KPI route and page shell
@@ -119,7 +119,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [ ] Add a loading state that does not flash broken chart markup.
 - [ ] Add an empty state when the cycle has no estimate points.
 - [ ] Add an empty state when the cycle has no valid start/end dates.
-- [ ] Ensure the page remains readable on desktop and mobile widths.
+- [ ] Ensure the page remains readable in the supported desktop layout.
 
 ### 5. Burndown data wiring
 
@@ -208,7 +208,6 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [ ] Confirm cancelled items do not reduce the remaining points in this release.
 - [ ] Confirm a cycle without estimate points shows the intended empty state.
 - [ ] Confirm a missing cycle shows a safe fallback instead of a crash.
-- [ ] Confirm the layout still works on mobile.
 
 ## Validation Commands Checklist
 
