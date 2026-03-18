@@ -32,12 +32,15 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Removed mobile-specific implementation and QA scope from the plan per product clarification; this feature only needs desktop handling.
 - [x] 2026-03-17: Added open-core import guidance to avoid depending on premium-only modules that are not present in this edition.
 - [x] 2026-03-17: Implemented the desktop KPI action button in `apps/web/core/components/cycles/list/cycle-list-item-action.tsx`; the button now routes to the future `/kpi` screen, stays CE-safe, and is intentionally visible to any cycle viewer because it is navigation-only. Touched files: `apps/web/core/components/cycles/list/cycle-list-item-action.tsx`, `PLAN.md`.
+- [x] 2026-03-17: Implemented the phase 3 KPI route shell in `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx` and `apps/web/core/components/cycles/kpi/page-shell.tsx`; the page now lives inside the cycle detail layout, fetches cycle details safely on direct access, reuses cycle analytics loading, and renders the initial KPI shell. Touched files: `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 
 ## Test Log
 
 - [x] 2026-03-17: Attempted `pnpm exec eslint core/components/cycles/list/cycle-list-item-action.tsx` from `apps/web`; failed because `pnpm` is not installed in the shell environment.
 - [x] 2026-03-17: Attempted `npm exec pnpm -- exec eslint core/components/cycles/list/cycle-list-item-action.tsx` from `apps/web`; failed because the local ESLint config package `@plane/eslint-config/next.js` is unavailable without workspace dependencies installed.
 - [x] 2026-03-17: Attempted `npm exec pnpm -- check:types` from `apps/web`; failed because `tsc` is unavailable and the workspace `node_modules` are not installed.
+- [x] 2026-03-17: `pnpm --filter web exec eslint "app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx" "core/components/cycles/kpi/page-shell.tsx"` passed.
+- [x] 2026-03-17: `pnpm --filter web check:types` passed after the phase 3 KPI route shell changes.
 
 ## Investigation Summary
 
@@ -112,15 +115,15 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 
 ### 3. New KPI route and page shell
 
-- [ ] Create `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx`.
-- [ ] Reuse existing open-core-safe imports only; if a shared extension point is needed, prefer an existing `@/plane-web/*` CE export over a premium-only file path.
-- [ ] Reuse the existing cycle detail layout inherited from `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/layout.tsx`.
-- [ ] Reuse existing route params: `workspaceSlug`, `projectId`, and `cycleId`.
-- [ ] Set an appropriate browser/page title if the page pattern supports it.
-- [ ] Reuse `useCyclesDetails(...)` so the KPI page does not create duplicate fetch logic.
-- [ ] Handle the case where the cycle is missing or has been deleted.
-- [ ] Handle the case where analytics are still loading.
-- [ ] Keep the first version focused on a single KPI view; do not add extra KPI tabs/cards unless required during implementation.
+- [x] Create `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx`.
+- [x] Reuse existing open-core-safe imports only; if a shared extension point is needed, prefer an existing `@/plane-web/*` CE export over a premium-only file path.
+- [x] Reuse the existing cycle detail layout inherited from `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/layout.tsx`.
+- [x] Reuse existing route params: `workspaceSlug`, `projectId`, and `cycleId`.
+- [x] Set an appropriate browser/page title if the page pattern supports it.
+- [x] Reuse `useCyclesDetails(...)` so the KPI page does not create duplicate fetch logic.
+- [x] Handle the case where the cycle is missing or has been deleted.
+- [x] Handle the case where analytics are still loading.
+- [x] Keep the first version focused on a single KPI view; do not add extra KPI tabs/cards unless required during implementation.
 
 ### 4. KPI page content
 
