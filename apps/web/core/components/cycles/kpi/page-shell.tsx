@@ -10,8 +10,8 @@ import { getDate, renderFormattedDateWithoutYear } from "@plane/utils";
 // components
 import { EmptyState } from "@/components/common/empty-state";
 import { PageHead } from "@/components/core/page-title";
-import ProgressChart from "@/components/core/sidebar/progress-chart";
 import useCyclesDetails from "@/components/cycles/active-cycle/use-cycles-details";
+import { KpiBurndownChart } from "@/components/cycles/kpi/burndown-chart";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useProject } from "@/hooks/store/use-project";
@@ -201,12 +201,9 @@ export const CycleKpiPageShell = observer(() => {
                     Based only on estimate points from completed work items for this release.
                   </p>
                 </div>
-                <ProgressChart
+                <KpiBurndownChart
                   distribution={burndownDistribution}
-                  totalIssues={totalEstimatePoints}
-                  plotTitle="remaining estimate points"
-                  xAxisLabel="Time"
-                  yAxisLabel="Remaining points"
+                  totalEstimatePoints={totalEstimatePoints}
                   className="min-h-[370px]"
                 />
               </div>
