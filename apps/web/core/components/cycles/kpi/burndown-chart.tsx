@@ -14,11 +14,36 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
   const distributionKeys = Object.keys(distribution ?? []);
   const stepCount = Math.max(distributionKeys.length - 1, 1);
 
-  const chartData = distributionKeys.map((key, index) => ({
-    name: renderFormattedDateWithoutYear(key),
-    current: distribution[key],
-    ideal: totalEstimatePoints * (1 - index / stepCount),
-  })) as unknown as TChartData<string, string>[];
+  const rawValues = distributionKeys
+    .map((key) => distribution[key])
+    .filter((value): value is number => typeof value === "number");
+
+  const shouldTreatAsNegativeCompleted = rawValues.some((value) => value < 0);
+  const shouldTreatAsCompletedProgress =
+    !shouldTreatAsNegativeCompleted && rawValues.length > 1 && rawValues[0] <= rawValues[rawValues.length - 1];
+
+  const chartData = distributionKeys.map((key, index) => {
+    const rawCurrent = distribution[key];
+    let normalizedCurrent = rawCurrent;
+
+    if (typeof rawCurrent === "number") {
+      let nextCurrent = rawCurrent;
+
+      if (shouldTreatAsNegativeCompleted) {
+        nextCurrent = totalEstimatePoints + rawCurrent;
+      } else if (shouldTreatAsCompletedProgress) {
+        nextCurrent = totalEstimatePoints - rawCurrent;
+      }
+
+      normalizedCurrent = Math.min(totalEstimatePoints, Math.max(0, nextCurrent));
+    }
+
+    return {
+      name: renderFormattedDateWithoutYear(key),
+      current: normalizedCurrent,
+      ideal: totalEstimatePoints * (1 - index / stepCount),
+    };
+  }) as unknown as TChartData<string, string>[];
 
   return (
     <div className={`flex w-full items-center justify-center ${className}`}>
@@ -53,7 +78,7 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
           },
         ]}
         xAxis={{ key: "name", label: "Time" }}
-        yAxis={{ key: "current", label: "Remaining points" }}
+        yAxis={{ key: "current", label: "Remaining points", domain: [0, Math.max(totalEstimatePoints, 1)] }}
         margin={{ bottom: 30 }}
         className="h-[370px] w-full"
         legend={{

@@ -35,6 +35,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Implemented the phase 3 KPI route shell in `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx` and `apps/web/core/components/cycles/kpi/page-shell.tsx`; the page now lives inside the cycle detail layout, fetches cycle details safely on direct access, reuses cycle analytics loading, and renders the initial KPI shell. Touched files: `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Wired the first KPI burndown card to estimate-point data by updating `apps/web/core/components/cycles/kpi/page-shell.tsx` and extending `apps/web/core/components/core/sidebar/progress-chart.tsx` for KPI-specific axis/legend copy while preserving existing consumers. The KPI page now renders the estimate-point burndown, summary metrics, loading behavior, and empty states for missing dates or missing estimates. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/core/sidebar/progress-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Isolated the KPI burndown implementation into `apps/web/core/components/cycles/kpi/burndown-chart.tsx` and restored `apps/web/core/components/core/sidebar/progress-chart.tsx` to its shared behavior so the existing cycle-page burndown remains untouched. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/core/sidebar/progress-chart.tsx`, `PLAN.md`.
+- [x] 2026-03-17: Corrected the KPI-only burndown transformation in `apps/web/core/components/cycles/kpi/burndown-chart.tsx` so the chart normalizes unexpected completed-progress payloads into remaining points and clamps values to the valid range, fixing the observed `0` to negative line without affecting the existing cycle-page chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -47,6 +48,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after wiring the estimate-point burndown card.
 - [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/core/sidebar/progress-chart.tsx" "core/components/cycles/kpi/burndown-chart.tsx" "core/components/cycles/kpi/page-shell.tsx"` passed after isolating the KPI chart implementation.
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after isolating the KPI chart implementation.
+- [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/burndown-chart.tsx" "core/components/cycles/kpi/page-shell.tsx"` passed after correcting the KPI burndown transformation.
+- [x] 2026-03-17: `pnpm --filter web check:types` passed after correcting the KPI burndown transformation.
 
 ## Investigation Summary
 
