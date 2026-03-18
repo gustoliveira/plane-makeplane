@@ -23,6 +23,7 @@ export const AreaChart = React.memo(<K extends string, T extends string>(props: 
       x: undefined,
       y: 10,
     },
+    customTooltipContent,
     customTicks,
     showTooltip = true,
     comparisonLine,
@@ -169,17 +170,21 @@ export const AreaChart = React.memo(<K extends string, T extends string>(props: 
               wrapperStyle={{
                 pointerEvents: "auto",
               }}
-              content={({ active, label, payload }) => (
-                <CustomTooltip
-                  active={active}
-                  activeKey={activeArea}
-                  label={label}
-                  payload={payload}
-                  itemKeys={itemKeys}
-                  itemLabels={itemLabels}
-                  itemDotColors={itemDotColors}
-                />
-              )}
+              content={({ active, label, payload }) =>
+                customTooltipContent ? (
+                  customTooltipContent({ active, label, payload })
+                ) : (
+                  <CustomTooltip
+                    active={active}
+                    activeKey={activeArea}
+                    label={label}
+                    payload={payload}
+                    itemKeys={itemKeys}
+                    itemLabels={itemLabels}
+                    itemDotColors={itemDotColors}
+                  />
+                )
+              }
             />
           )}
           {renderAreas}
