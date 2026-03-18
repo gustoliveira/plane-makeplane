@@ -38,6 +38,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Corrected the KPI-only burndown transformation in `apps/web/core/components/cycles/kpi/burndown-chart.tsx` so the chart normalizes unexpected completed-progress payloads into remaining points and clamps values to the valid range, fixing the observed `0` to negative line without affecting the existing cycle-page chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Added a new phase 8 plan for KPI burndown filters so labels and other filter dimensions can be implemented in a dedicated follow-up without changing the current phase ordering. Touched files: `PLAN.md`.
 - [x] 2026-03-17: Added a KPI-only tendency line to `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, mirroring the expected burndown behavior without altering the existing cycle-page chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
+- [x] 2026-03-17: Implemented phase 8 label filtering fully on the frontend by fetching cycle issues, project labels, and project estimates on the KPI page, then recomputing the burndown client-side for the selected labels. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -54,6 +55,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after correcting the KPI burndown transformation.
 - [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/burndown-chart.tsx"` passed after adding the KPI tendency line.
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after adding the KPI tendency line.
+- [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/page-shell.tsx" "core/components/cycles/kpi/burndown-chart.tsx"` passed after implementing client-side label filtering.
+- [x] 2026-03-17: `pnpm --filter web check:types` passed after implementing client-side label filtering.
 
 ## Investigation Summary
 
@@ -181,23 +184,23 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 
 ### 8. KPI burndown chart filters
 
-- [ ] Add filter controls to the KPI burndown screen without changing the existing cycle-page burndown behavior.
-- [ ] Start with label filtering as the first supported filter dimension.
-- [ ] Place the filter UI near the KPI burndown card header so the relationship to the chart is obvious.
-- [ ] Support selecting one or more labels to scope the burndown chart.
-- [ ] Ensure that if a work item has the selected label `bug`, the KPI chart includes only estimate points from work items with that label.
-- [ ] Define the default filter state as `All work items` so the current KPI chart remains the baseline view.
-- [ ] Show the active filter state clearly in the UI.
-- [ ] Handle the case where no labels exist in the cycle.
-- [ ] Handle the case where the selected label set returns no matching work items.
-- [ ] Preserve the desktop-only scope for the KPI route while implementing the filter controls.
-- [ ] Decide whether filtering should be purely client-side over already-fetched cycle issues or backed by a dedicated filtered analytics request.
-- [ ] Prefer the simplest correct implementation that does not distort the estimate-point burndown math.
-- [ ] If client-side filtering is chosen, verify that the necessary issue-label and estimate data are available for all cycle work items used in the KPI view.
-- [ ] If server-side filtering is chosen, extend the analytics contract to accept label filters without breaking existing consumers.
-- [ ] Keep cancelled items excluded from the filtered burndown in the same way as the unfiltered KPI chart for version 1.
-- [ ] Add KPI filter state to the route query string only if that materially improves sharability or persistence.
-- [ ] Document the final filter-state behavior in this plan before implementation is considered complete.
+- [x] Add filter controls to the KPI burndown screen without changing the existing cycle-page burndown behavior.
+- [x] Start with label filtering as the first supported filter dimension.
+- [x] Place the filter UI near the KPI burndown card header so the relationship to the chart is obvious.
+- [x] Support selecting one or more labels to scope the burndown chart.
+- [x] Ensure that if a work item has the selected label `bug`, the KPI chart includes only estimate points from work items with that label.
+- [x] Define the default filter state as `All work items` so the current KPI chart remains the baseline view.
+- [x] Show the active filter state clearly in the UI.
+- [x] Handle the case where no labels exist in the cycle.
+- [x] Handle the case where the selected label set returns no matching work items.
+- [x] Preserve the desktop-only scope for the KPI route while implementing the filter controls.
+- [x] Decide whether filtering should be purely client-side over already-fetched cycle issues or backed by a dedicated filtered analytics request.
+- [x] Prefer the simplest correct implementation that does not distort the estimate-point burndown math.
+- [x] If client-side filtering is chosen, verify that the necessary issue-label and estimate data are available for all cycle work items used in the KPI view.
+- [x] Client-side filtering is chosen; no server-side analytics contract change is needed for this phase.
+- [x] Keep cancelled items excluded from the filtered burndown in the same way as the unfiltered KPI chart for version 1.
+- [x] Query-string persistence is not added in this phase; the filter remains local to the KPI screen state.
+- [x] Document the final filter-state behavior in this plan before implementation is considered complete.
 
 ## Automated Test Checklist
 
