@@ -37,9 +37,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Isolated the KPI burndown implementation into `apps/web/core/components/cycles/kpi/burndown-chart.tsx` and restored `apps/web/core/components/core/sidebar/progress-chart.tsx` to its shared behavior so the existing cycle-page burndown remains untouched. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/core/sidebar/progress-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Corrected the KPI-only burndown transformation in `apps/web/core/components/cycles/kpi/burndown-chart.tsx` so the chart normalizes unexpected completed-progress payloads into remaining points and clamps values to the valid range, fixing the observed `0` to negative line without affecting the existing cycle-page chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Added a new phase 8 plan for KPI burndown filters so labels and other filter dimensions can be implemented in a dedicated follow-up without changing the current phase ordering. Touched files: `PLAN.md`.
-- [x] 2026-03-17: Added and then removed the KPI-only tendency line from `apps/web/core/components/cycles/kpi/burndown-chart.tsx` after product clarification that it was not necessary. The KPI chart now keeps only current and ideal remaining points. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
+- [x] 2026-03-17: Added a KPI-only tendency line to `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, mirroring the expected burndown behavior without altering the existing cycle-page chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Implemented phase 8 label filtering fully on the frontend by fetching cycle issues, project labels, and project estimates on the KPI page, then recomputing the burndown client-side for the selected labels. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
-- [x] 2026-03-17: Rounded KPI burndown hover values to two decimal places by using KPI-specific tooltip formatting in `apps/web/core/components/cycles/kpi/burndown-chart.tsx` and the existing `customTooltipContent` hook in the shared area chart component. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `packages/propel/src/charts/area-chart/root.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -54,12 +53,10 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after isolating the KPI chart implementation.
 - [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/burndown-chart.tsx" "core/components/cycles/kpi/page-shell.tsx"` passed after correcting the KPI burndown transformation.
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after correcting the KPI burndown transformation.
-- [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/burndown-chart.tsx"` passed after adding and later removing the KPI tendency line.
-- [x] 2026-03-17: `pnpm --filter web check:types` passed after adding and later removing the KPI tendency line.
+- [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/burndown-chart.tsx"` passed after adding the KPI tendency line.
+- [x] 2026-03-17: `pnpm --filter web check:types` passed after adding the KPI tendency line.
 - [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/page-shell.tsx" "core/components/cycles/kpi/burndown-chart.tsx"` passed after implementing client-side label filtering.
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after implementing client-side label filtering.
-- [x] 2026-03-17: `pnpm exec eslint "apps/web/core/components/cycles/kpi/burndown-chart.tsx" "packages/propel/src/charts/area-chart/root.tsx"` passed after limiting KPI tooltip precision to two decimals.
-- [x] 2026-03-17: `pnpm --filter web check:types` passed after limiting KPI tooltip precision to two decimals.
 
 ## Investigation Summary
 
@@ -175,7 +172,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
   - y-axis: `Remaining points`
 - [x] Keep existing chart consumers working without behavioral regressions.
 - [x] Keep legend labels aligned with estimate-point language instead of work-item language on the KPI page.
-- [x] Keep the KPI chart aligned with the final product decision: current and ideal remaining points only, with no separate tendency line.
+- [x] Render a KPI-only tendency line similar to the existing burndown experience without changing the shared cycle-page chart.
 
 ### 7. Backend production code changes (only if truly needed)
 

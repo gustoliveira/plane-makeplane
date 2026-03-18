@@ -4,11 +4,6 @@ import { AreaChart } from "@plane/propel/charts/area-chart";
 import type { TChartData, TCycleCompletionChartDistribution } from "@plane/types";
 import { renderFormattedDateWithoutYear } from "@plane/utils";
 
-const KPI_TOOLTIP_LABELS: Record<string, string> = {
-  current: "Current remaining points",
-  ideal: "Ideal remaining points",
-};
-
 type Props = {
   distribution: TCycleCompletionChartDistribution;
   totalEstimatePoints: number;
@@ -41,18 +36,37 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
     return Math.min(totalEstimatePoints, Math.max(0, nextCurrent));
   };
 
+  const normalizedValues = distributionKeys.map((key, index) => ({
+    index,
+    current: normalizeCurrentValue(distribution[key]),
+  }));
+
+  const tendencyAnchors = normalizedValues.filter(
+    (value): value is { index: number; current: number } => typeof value.current === "number"
+  );
+
+  const tendencyValues =
+    tendencyAnchors.length >= 2
+      ? (() => {
+          const firstPoint = tendencyAnchors[0];
+          const lastPoint = tendencyAnchors[tendencyAnchors.length - 1];
+          const slope =
+            lastPoint.index === firstPoint.index
+              ? 0
+              : (lastPoint.current - firstPoint.current) / (lastPoint.index - firstPoint.index);
+
+          return normalizedValues.map(({ index }) =>
+            Math.min(totalEstimatePoints, Math.max(0, firstPoint.current + slope * (index - firstPoint.index)))
+          );
+        })()
+      : null;
+
   const chartData = distributionKeys.map((key, index) => ({
     name: renderFormattedDateWithoutYear(key),
-    current: normalizeCurrentValue(distribution[key]),
+    current: normalizedValues[index]?.current,
     ideal: totalEstimatePoints * (1 - index / stepCount),
+    tendency: tendencyValues?.[index] ?? null,
   })) as unknown as TChartData<string, string>[];
-
-  const formatTooltipValue = (value: unknown): string => {
-    if (typeof value === "number") return value.toFixed(2);
-    if (typeof value === "string") return value;
-    if (Array.isArray(value)) return value.join(", ");
-    return "-";
-  };
 
   return (
     <div className={`flex w-full items-center justify-center ${className}`}>
@@ -85,6 +99,21 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
               strokeWidth: 1,
             },
           },
+          {
+            key: "tendency",
+            label: "Tendency remaining points",
+            strokeColor: "#F59E0B",
+            fill: "#F59E0B",
+            fillOpacity: 0,
+            showDot: false,
+            smoothCurves: false,
+            strokeOpacity: tendencyValues ? 1 : 0,
+            stackId: "bar-three",
+            style: {
+              strokeDasharray: "3, 3",
+              strokeWidth: 2,
+            },
+          },
         ]}
         xAxis={{ key: "name", label: "Time" }}
         yAxis={{ key: "current", label: "Remaining points", domain: [0, Math.max(totalEstimatePoints, 1)] }}
@@ -97,39 +126,6 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
           wrapperStyles: {
             marginTop: 20,
           },
-        }}
-        customTooltipContent={({ active, label, payload }) => {
-          const filteredPayload = (payload ?? []).filter((item: { dataKey?: string }) =>
-            item.dataKey ? Object.keys(KPI_TOOLTIP_LABELS).includes(item.dataKey) : false
-          );
-
-          if (!active || !filteredPayload.length) return null;
-
-          return (
-            <div className="flex w-[14rem] flex-col gap-2 rounded-md border border-custom-border-200 bg-custom-background-100 p-3 shadow-lg">
-              <p className="truncate border-b border-custom-border-200 pb-2 text-xs font-medium text-custom-text-100">
-                {label}
-              </p>
-              {filteredPayload.map((item: { dataKey?: string; color?: string; value?: unknown }) => {
-                if (!item.dataKey) return null;
-
-                return (
-                  <div key={item.dataKey} className="flex items-center gap-2 text-xs">
-                    <div className="flex items-center gap-2 truncate">
-                      <div
-                        className="size-2 flex-shrink-0 rounded-sm"
-                        style={{ backgroundColor: item.color ?? "#3F76FF" }}
-                      />
-                      <span className="truncate text-custom-text-300">{KPI_TOOLTIP_LABELS[item.dataKey]}:</span>
-                    </div>
-                    <span className="ml-auto flex-shrink-0 font-medium text-custom-text-200">
-                      {formatTooltipValue(item.value)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          );
         }}
       />
     </div>
