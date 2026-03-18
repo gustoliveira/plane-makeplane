@@ -33,6 +33,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Added open-core import guidance to avoid depending on premium-only modules that are not present in this edition.
 - [x] 2026-03-17: Implemented the desktop KPI action button in `apps/web/core/components/cycles/list/cycle-list-item-action.tsx`; the button now routes to the future `/kpi` screen, stays CE-safe, and is intentionally visible to any cycle viewer because it is navigation-only. Touched files: `apps/web/core/components/cycles/list/cycle-list-item-action.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Implemented the phase 3 KPI route shell in `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx` and `apps/web/core/components/cycles/kpi/page-shell.tsx`; the page now lives inside the cycle detail layout, fetches cycle details safely on direct access, reuses cycle analytics loading, and renders the initial KPI shell. Touched files: `apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
+- [x] 2026-03-17: Wired the first KPI burndown card to estimate-point data by updating `apps/web/core/components/cycles/kpi/page-shell.tsx` and extending `apps/web/core/components/core/sidebar/progress-chart.tsx` for KPI-specific axis/legend copy while preserving existing consumers. The KPI page now renders the estimate-point burndown, summary metrics, loading behavior, and empty states for missing dates or missing estimates. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/core/sidebar/progress-chart.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -41,6 +42,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Attempted `npm exec pnpm -- check:types` from `apps/web`; failed because `tsc` is unavailable and the workspace `node_modules` are not installed.
 - [x] 2026-03-17: `pnpm --filter web exec eslint "app/(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/cycles/(detail)/[cycleId]/kpi/page.tsx" "core/components/cycles/kpi/page-shell.tsx"` passed.
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after the phase 3 KPI route shell changes.
+- [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/core/sidebar/progress-chart.tsx" "core/components/cycles/kpi/page-shell.tsx"` passed after wiring the estimate-point burndown card.
+- [x] 2026-03-17: `pnpm --filter web check:types` passed after wiring the estimate-point burndown card.
 
 ## Investigation Summary
 
@@ -127,42 +130,42 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 
 ### 4. KPI page content
 
-- [ ] Add a clear page heading for KPI content.
-- [ ] Add supporting copy that explicitly says the chart uses estimate points.
-- [ ] Render a single burndown card for version 1.
-- [ ] Use cycle metadata already loaded by the store when helpful (cycle name, dates, project context).
-- [ ] Add a loading state that does not flash broken chart markup.
-- [ ] Add an empty state when the cycle has no estimate points.
-- [ ] Add an empty state when the cycle has no valid start/end dates.
-- [ ] Ensure the page remains readable in the supported desktop layout.
+- [x] Add a clear page heading for KPI content.
+- [x] Add supporting copy that explicitly says the chart uses estimate points.
+- [x] Render a single burndown card for version 1.
+- [x] Use cycle metadata already loaded by the store when helpful (cycle name, dates, project context).
+- [x] Add a loading state that does not flash broken chart markup.
+- [x] Add an empty state when the cycle has no estimate points.
+- [x] Add an empty state when the cycle has no valid start/end dates.
+- [x] Ensure the page remains readable in the supported desktop layout.
 
 ### 5. Burndown data wiring
 
-- [ ] Read chart data from `cycle.estimate_distribution.completion_chart`.
-- [ ] Read total scope from `cycle.total_estimate_points`.
-- [ ] Do not use `cycle.distribution.completion_chart` on the KPI page.
-- [ ] Do not allow the KPI page to silently fall back to ticket-count burndown.
-- [ ] Confirm the ideal line is calculated against total estimate points.
-- [ ] Confirm future dates continue to render `null` values consistently with the existing API contract.
-- [ ] Confirm version 1 behavior leaves cancelled issues out of the burndown reduction logic.
-- [ ] Confirm estimate-less issues do not distort the points chart.
+- [x] Read chart data from `cycle.estimate_distribution.completion_chart`.
+- [x] Read total scope from `cycle.total_estimate_points`.
+- [x] Do not use `cycle.distribution.completion_chart` on the KPI page.
+- [x] Do not allow the KPI page to silently fall back to ticket-count burndown.
+- [x] Confirm the ideal line is calculated against total estimate points.
+- [x] Confirm future dates continue to render `null` values consistently with the existing API contract.
+- [x] Confirm version 1 behavior leaves cancelled issues out of the burndown reduction logic.
+- [x] Confirm estimate-less issues do not distort the points chart.
 
 ### 6. Chart component reuse or extension
 
-- [ ] Decide whether `apps/web/core/components/core/sidebar/progress-chart.tsx` can be reused unchanged.
-- [ ] If reuse is not sufficient, make the smallest backward-compatible extension possible.
-- [ ] If extending the chart, support KPI-specific copy such as:
+- [x] Decide whether `apps/web/core/components/core/sidebar/progress-chart.tsx` can be reused unchanged.
+- [x] If reuse is not sufficient, make the smallest backward-compatible extension possible.
+- [x] If extending the chart, support KPI-specific copy such as:
   - x-axis: `Time`
   - y-axis: `Remaining points`
-- [ ] Keep existing chart consumers working without behavioral regressions.
-- [ ] Keep legend labels aligned with estimate-point language instead of work-item language on the KPI page.
+- [x] Keep existing chart consumers working without behavioral regressions.
+- [x] Keep legend labels aligned with estimate-point language instead of work-item language on the KPI page.
 
 ### 7. Backend production code changes (only if truly needed)
 
-- [ ] Verify the existing `?type=points` analytics response is enough before changing backend production code.
+- [x] Verify the existing `?type=points` analytics response is enough before changing backend production code.
 - [ ] Only change backend production code if the current response cannot support the KPI page cleanly.
-- [ ] Do not introduce cancelled-item burndown logic in version 1.
-- [ ] Do not create a KPI-specific API endpoint unless reuse of the existing analytics endpoint becomes impossible.
+- [x] Do not introduce cancelled-item burndown logic in version 1.
+- [x] Do not create a KPI-specific API endpoint unless reuse of the existing analytics endpoint becomes impossible.
 - [ ] If backend production code changes are needed, keep them minimal and document exactly why in this file.
 
 ## Automated Test Checklist
