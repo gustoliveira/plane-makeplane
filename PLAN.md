@@ -36,6 +36,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Wired the first KPI burndown card to estimate-point data by updating `apps/web/core/components/cycles/kpi/page-shell.tsx` and extending `apps/web/core/components/core/sidebar/progress-chart.tsx` for KPI-specific axis/legend copy while preserving existing consumers. The KPI page now renders the estimate-point burndown, summary metrics, loading behavior, and empty states for missing dates or missing estimates. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/core/sidebar/progress-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Isolated the KPI burndown implementation into `apps/web/core/components/cycles/kpi/burndown-chart.tsx` and restored `apps/web/core/components/core/sidebar/progress-chart.tsx` to its shared behavior so the existing cycle-page burndown remains untouched. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/core/sidebar/progress-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Corrected the KPI-only burndown transformation in `apps/web/core/components/cycles/kpi/burndown-chart.tsx` so the chart normalizes unexpected completed-progress payloads into remaining points and clamps values to the valid range, fixing the observed `0` to negative line without affecting the existing cycle-page chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
+- [x] 2026-03-17: Added a new phase 8 plan for KPI burndown filters so labels and other filter dimensions can be implemented in a dedicated follow-up without changing the current phase ordering. Touched files: `PLAN.md`.
 
 ## Test Log
 
@@ -174,9 +175,29 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] Do not create a KPI-specific API endpoint unless reuse of the existing analytics endpoint becomes impossible.
 - [ ] If backend production code changes are needed, keep them minimal and document exactly why in this file.
 
+### 8. KPI burndown chart filters
+
+- [ ] Add filter controls to the KPI burndown screen without changing the existing cycle-page burndown behavior.
+- [ ] Start with label filtering as the first supported filter dimension.
+- [ ] Place the filter UI near the KPI burndown card header so the relationship to the chart is obvious.
+- [ ] Support selecting one or more labels to scope the burndown chart.
+- [ ] Ensure that if a work item has the selected label `bug`, the KPI chart includes only estimate points from work items with that label.
+- [ ] Define the default filter state as `All work items` so the current KPI chart remains the baseline view.
+- [ ] Show the active filter state clearly in the UI.
+- [ ] Handle the case where no labels exist in the cycle.
+- [ ] Handle the case where the selected label set returns no matching work items.
+- [ ] Preserve the desktop-only scope for the KPI route while implementing the filter controls.
+- [ ] Decide whether filtering should be purely client-side over already-fetched cycle issues or backed by a dedicated filtered analytics request.
+- [ ] Prefer the simplest correct implementation that does not distort the estimate-point burndown math.
+- [ ] If client-side filtering is chosen, verify that the necessary issue-label and estimate data are available for all cycle work items used in the KPI view.
+- [ ] If server-side filtering is chosen, extend the analytics contract to accept label filters without breaking existing consumers.
+- [ ] Keep cancelled items excluded from the filtered burndown in the same way as the unfiltered KPI chart for version 1.
+- [ ] Add KPI filter state to the route query string only if that materially improves sharability or persistence.
+- [ ] Document the final filter-state behavior in this plan before implementation is considered complete.
+
 ## Automated Test Checklist
 
-### 8. Frontend automated test setup
+### 9. Frontend automated test setup
 
 - [ ] Add a frontend automated test runner for `apps/web`.
 - [ ] Recommended approach: add Vitest + React Testing Library for route/component coverage with minimal setup cost.
@@ -188,7 +209,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
   - shared assertions/setup utilities
 - [ ] Ensure the new test setup can run in isolation without requiring the full app to boot.
 
-### 9. Frontend automated tests for the KPI feature
+### 10. Frontend automated tests for the KPI feature
 
 - [ ] Add a test that the cycle list row renders a `KPI` action.
 - [ ] Add a test that the `KPI` action is rendered in the action group before the three-dot quick actions control.
@@ -201,8 +222,11 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [ ] Add a test that the KPI page renders the burndown chart when point analytics are present.
 - [ ] Add a test that the KPI page chart copy refers to estimate points.
 - [ ] Add a test that cancelled counts do not alter the KPI page chart input in version 1.
+- [ ] Add a test that selecting a label filter such as `bug` limits the KPI burndown to work items with that label.
+- [ ] Add a test that clearing the filter returns the KPI burndown to the all-work-items baseline.
+- [ ] Add a test that an empty filtered result shows the intended no-data state.
 
-### 10. Backend automated tests for the KPI feature
+### 11. Backend automated tests for the KPI feature
 
 - [ ] Add new cycle analytics contract tests in `apps/api/plane/tests/contract/api/test_cycles.py` or a dedicated `test_cycle_analytics.py`.
 - [ ] Create reusable fixtures for:
@@ -219,8 +243,9 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [ ] Add a contract test proving the response includes the full cycle date range as keys.
 - [ ] Add a contract test proving future dates return `null` values when appropriate for active cycles.
 - [ ] Add a contract test for a no-estimate cycle response shape if the KPI page depends on it.
+- [ ] If server-side label filtering is implemented, add a contract test proving `label=bug` (or equivalent filter parameter) only includes estimate points from matching work items.
 
-### 11. Manual verification checklist
+### 12. Manual verification checklist
 
 - [ ] Open the project cycles list on desktop and confirm the `KPI` action appears in the expected position.
 - [ ] Click `KPI` and confirm the browser navigates to the expected `/kpi` URL.
@@ -232,6 +257,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [ ] Confirm cancelled items do not reduce the remaining points in this release.
 - [ ] Confirm a cycle without estimate points shows the intended empty state.
 - [ ] Confirm a missing cycle shows a safe fallback instead of a crash.
+- [ ] Confirm selecting the `bug` label filter updates the KPI burndown to only matching work items.
+- [ ] Confirm clearing the filter restores the unfiltered KPI burndown.
 
 ## Validation Commands Checklist
 
