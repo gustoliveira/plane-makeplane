@@ -354,18 +354,9 @@ export const CycleKpiPageShell = observer(() => {
                 label={
                   <div className="flex items-center gap-2">
                     <span className="max-w-[180px] truncate text-sm">{selectedLabelSummary}</span>
+                    <ChevronDown className="h-3 w-3" />
                   </div>
                 }
-                buttonClassName="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-custom-text-100"
-                optionsClassName="w-64"
-              />
-              <LabelDropdown
-                projectId={null}
-                value={selectedLabelIds}
-                onChange={setSelectedLabelIds}
-                defaultOptions={availableLabels}
-                disabled={isFilterDataLoading || availableLabels.length === 0}
-                label={<span className="max-w-[180px] truncate">{selectedLabelSummary}</span>}
                 buttonClassName="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-custom-text-100"
                 optionsClassName="w-64"
               />
