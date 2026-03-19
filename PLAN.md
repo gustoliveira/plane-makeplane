@@ -49,6 +49,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Refined the KPI x-axis rendering with `minTickGap: 0`, rotated tick labels, and extra bottom margin so every day stays visible instead of being visually collapsed. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `packages/propel/src/charts/area-chart/root.tsx`, `packages/types/src/charts/index.ts`, `PLAN.md`.
 - [x] 2026-03-17: Reworked the KPI x-axis tick renderer to show compact per-day labels with day numbers and month markers instead of long rotated full dates, and added shared x-axis height support so the compact daily labels have enough vertical space. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `packages/propel/src/charts/area-chart/root.tsx`, `packages/types/src/charts/index.ts`, `PLAN.md`.
 - [x] 2026-03-17: Properly fixed the KPI daily-axis regression by reverting the raw-date/shared-axis changes and restoring the original short formatted x-axis labels, while coloring weekends through a label-to-date mapping inside `apps/web/core/components/cycles/kpi/burndown-chart.tsx`. This matches the earlier non-collapsed behavior and keeps the fix scoped to the KPI chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `packages/propel/src/charts/area-chart/root.tsx`, `packages/types/src/charts/index.ts`, `PLAN.md`.
+- [x] 2026-03-17: Fixed the final missing-days regression on the KPI burndown chart by reapplying explicit `interval: 0`, `minTickGap: 0`, and explicit string ticks to the restored short-date x-axis. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `packages/propel/src/charts/area-chart/root.tsx`, `packages/types/src/charts/index.ts`, `PLAN.md`.
 
 ## Test Log
 
@@ -89,6 +90,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after switching the KPI x-axis to compact day-number tick labels.
 - [x] 2026-03-17: `pnpm exec eslint "apps/web/core/components/cycles/kpi/burndown-chart.tsx" "packages/propel/src/charts/area-chart/root.tsx" "packages/types/src/charts/index.ts"` passed with existing warnings in `packages/types/src/charts/index.ts` after restoring the original short x-axis labels and KPI-only weekend mapping.
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after restoring the original short x-axis labels and KPI-only weekend mapping.
+- [x] 2026-03-17: `pnpm exec eslint "apps/web/core/components/cycles/kpi/burndown-chart.tsx" "packages/propel/src/charts/area-chart/root.tsx" "packages/types/src/charts/index.ts"` passed after explicitly forcing all dates to render on the short-date axis.
+- [x] 2026-03-17: `pnpm --filter web check:types` passed after explicitly forcing all dates to render on the short-date axis.
 
 ## Investigation Summary
 

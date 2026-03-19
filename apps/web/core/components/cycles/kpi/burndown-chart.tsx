@@ -64,6 +64,21 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
     return Math.min(totalEstimatePoints, Math.max(0, nextCurrent));
   };
 
+  const xAxisConfig = {
+    key: "name",
+    label: "Time",
+    interval: 0,
+    minTickGap: 0,
+    ticks: distributionKeys.map((key) => renderFormattedDateWithoutYear(key)),
+  } as unknown as {
+    key: string;
+    label?: string;
+    strokeColor?: string;
+    dy?: number;
+    minTickGap?: number;
+    ticks?: Array<string | number>;
+  };
+
   const chartData = distributionKeys.map((key, index) => ({
     name: renderFormattedDateWithoutYear(key),
     current: normalizeCurrentValue(distribution[key]),
@@ -109,7 +124,7 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
             },
           },
         ]}
-        xAxis={{ key: "name", label: "Time" }}
+        xAxis={xAxisConfig}
         yAxis={{ key: "current", label: "Remaining points", domain: [0, Math.max(totalEstimatePoints, 1)] }}
         customTicks={{ x: WeekendTickComponent }}
         margin={{ bottom: 30 }}
