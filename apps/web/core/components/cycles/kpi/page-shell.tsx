@@ -327,6 +327,19 @@ export const CycleKpiPageShell = observer(() => {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {(selectedLabelIds.length > 0 || selectedAssigneeIds.length > 0) && (
+                <button
+                  type="button"
+                  className="flex items-center gap-1 border-custom-border-200 px-3 py-1 text-xs font-medium text-custom-text-200 transition-colors hover:text-custom-text-100"
+                  onClick={() => {
+                    setSelectedLabelIds([]);
+                    setSelectedAssigneeIds([]);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                  Clear
+                </button>
+              )}
               <MemberDropdown
                 value={selectedAssigneeIds}
                 onChange={setSelectedAssigneeIds}
@@ -359,19 +372,6 @@ export const CycleKpiPageShell = observer(() => {
                 buttonClassName="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-custom-text-100"
                 optionsClassName="w-64"
               />
-              {(selectedLabelIds.length > 0 || selectedAssigneeIds.length > 0) && (
-                <button
-                  type="button"
-                  className="flex items-center gap-1 rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-1 text-xs font-medium text-custom-text-200 transition-colors hover:text-custom-text-100"
-                  onClick={() => {
-                    setSelectedLabelIds([]);
-                    setSelectedAssigneeIds([]);
-                  }}
-                >
-                  <X className="h-3 w-3" />
-                  Clear
-                </button>
-              )}
             </div>
           </div>
 
