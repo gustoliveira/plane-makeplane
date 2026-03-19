@@ -334,8 +334,7 @@ export const CycleKpiPageShell = observer(() => {
                 placeholder="All users"
                 multiple
                 disabled={isFilterDataLoading || cycleAssigneeIds.length === 0}
-                className="h-7"
-                buttonClassName="h-full rounded-md border border-custom-border-200 bg-custom-background-90 px-3 text-custom-text-100"
+                buttonClassName="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-custom-text-100"
                 buttonVariant="transparent-without-text"
                 hideIcon
                 button={
@@ -352,20 +351,18 @@ export const CycleKpiPageShell = observer(() => {
                 onChange={setSelectedLabelIds}
                 defaultOptions={availableLabels}
                 disabled={isFilterDataLoading || availableLabels.length === 0}
-                fullHeight
-                className="h-7"
                 label={
                   <div className="flex items-center gap-2">
                     <span className="max-w-[180px] truncate text-sm">{selectedLabelSummary}</span>
                   </div>
                 }
-                buttonClassName="h-full rounded-md border border-custom-border-200 bg-custom-background-90 px-3 text-custom-text-100"
+                buttonClassName="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-custom-text-100"
                 optionsClassName="w-64"
               />
               {(selectedLabelIds.length > 0 || selectedAssigneeIds.length > 0) && (
                 <button
                   type="button"
-                  className="flex h-7 items-center gap-1 rounded-md border border-custom-border-200 bg-custom-background-90 px-3 text-xs font-medium text-custom-text-200 transition-colors hover:text-custom-text-100"
+                  className="flex items-center gap-1 rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-xs font-medium text-custom-text-200 transition-colors hover:text-custom-text-100"
                   onClick={() => {
                     setSelectedLabelIds([]);
                     setSelectedAssigneeIds([]);
