@@ -76,6 +76,19 @@ const countBusinessDaysUntilEnd = (endDate: Date | null | undefined) => {
   return businessDays;
 };
 
+const getBusinessDaysUntilEndLabel = (endDate: Date | null | undefined, businessDaysUntilEnd: number | null) => {
+  if (!endDate || businessDaysUntilEnd === null) return "Not available";
+
+  const today = new Date();
+  const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const normalizedEndDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+  if (normalizedEndDate < normalizedToday) return "Cycle ended";
+  if (businessDaysUntilEnd === 0) return "Cycle ends today";
+
+  return `${businessDaysUntilEnd} business day${businessDaysUntilEnd === 1 ? "" : "s"}`;
+};
+
 export const CycleKpiPageShell = observer(() => {
   const router = useAppRouter();
   const { workspaceSlug, projectId, cycleId } = useParams() as {
@@ -223,10 +236,7 @@ export const CycleKpiPageShell = observer(() => {
       ? `${renderFormattedDateWithoutYear(cycle.start_date)} - ${renderFormattedDateWithoutYear(cycle.end_date)}`
       : "Dates not configured";
   const businessDaysUntilEnd = countBusinessDaysUntilEnd(cycleEndDate);
-  const businessDaysUntilEndLabel =
-    businessDaysUntilEnd === null
-      ? "Not available"
-      : `${businessDaysUntilEnd} business day${businessDaysUntilEnd === 1 ? "" : "s"}`;
+  const businessDaysUntilEndLabel = getBusinessDaysUntilEndLabel(cycleEndDate, businessDaysUntilEnd);
 
   useEffect(() => {
     const availableLabelSet = new Set(availableLabels.map((label) => label.id));
