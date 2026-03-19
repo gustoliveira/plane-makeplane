@@ -331,15 +331,18 @@ export const CycleKpiPageShell = observer(() => {
                 value={selectedAssigneeIds}
                 onChange={setSelectedAssigneeIds}
                 projectId={projectId}
+                placeholder="All users"
                 multiple
                 disabled={isFilterDataLoading || cycleAssigneeIds.length === 0}
+                className="h-7"
+                buttonClassName="h-full rounded-md border border-custom-border-200 bg-custom-background-90 px-3 text-custom-text-100"
                 buttonVariant="transparent-without-text"
-                buttonContainerClassName="flex items-center justify-between gap-2 rounded-md border border-custom-border-200 bg-custom-background-90 px-2.5 py-1 text-xs text-custom-text-100 hover:bg-custom-background-80 transition-colors"
+                hideIcon
                 button={
-                  <>
-                    <span className="max-w-[180px] truncate">{selectedAssigneesSummary}</span>
-                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
-                  </>
+                  <div className="flex items-center gap-2">
+                    <span className="max-w-[180px] truncate text-sm">{selectedAssigneesSummary}</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </div>
                 }
                 optionsClassName="w-64"
               />
@@ -349,14 +352,20 @@ export const CycleKpiPageShell = observer(() => {
                 onChange={setSelectedLabelIds}
                 defaultOptions={availableLabels}
                 disabled={isFilterDataLoading || availableLabels.length === 0}
-                label={<span className="max-w-[180px] truncate">{selectedLabelSummary}</span>}
-                buttonClassName="!px-2.5 !py-1 rounded-md border border-custom-border-200 bg-custom-background-90 text-xs text-custom-text-100 hover:bg-custom-background-80 transition-colors"
+                fullHeight
+                className="h-7"
+                label={
+                  <div className="flex items-center gap-2">
+                    <span className="max-w-[180px] truncate text-sm">{selectedLabelSummary}</span>
+                  </div>
+                }
+                buttonClassName="h-full rounded-md border border-custom-border-200 bg-custom-background-90 px-3 text-custom-text-100"
                 optionsClassName="w-64"
               />
               {(selectedLabelIds.length > 0 || selectedAssigneeIds.length > 0) && (
                 <button
                   type="button"
-                  className="flex items-center gap-1 rounded-md border border-custom-border-200 bg-custom-background-90 px-2.5 py-1 text-xs text-custom-text-200 transition-colors hover:text-custom-text-100 hover:bg-custom-background-80"
+                  className="flex h-7 items-center gap-1 rounded-md border border-custom-border-200 bg-custom-background-90 px-3 text-xs font-medium text-custom-text-200 transition-colors hover:text-custom-text-100"
                   onClick={() => {
                     setSelectedLabelIds([]);
                     setSelectedAssigneeIds([]);
