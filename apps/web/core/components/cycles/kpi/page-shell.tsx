@@ -4,7 +4,7 @@ import type { FC } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { X } from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 // plane imports
 import type { TIssue } from "@plane/types";
 import { Loader } from "@plane/ui";
@@ -331,12 +331,32 @@ export const CycleKpiPageShell = observer(() => {
                 value={selectedAssigneeIds}
                 onChange={setSelectedAssigneeIds}
                 projectId={projectId}
-                placeholder="Assignees"
+                placeholder="All users"
                 multiple
                 disabled={isFilterDataLoading || cycleAssigneeIds.length === 0}
                 buttonClassName="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-custom-text-100"
                 buttonVariant="transparent-without-text"
-                button={<span className="max-w-[180px] truncate text-sm">{selectedAssigneesSummary}</span>}
+                hideIcon
+                button={
+                  <div className="flex items-center gap-2">
+                    <span className="max-w-[180px] truncate text-sm">{selectedAssigneesSummary}</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </div>
+                }
+                optionsClassName="w-64"
+              />
+              <LabelDropdown
+                projectId={null}
+                value={selectedLabelIds}
+                onChange={setSelectedLabelIds}
+                defaultOptions={availableLabels}
+                disabled={isFilterDataLoading || availableLabels.length === 0}
+                label={
+                  <div className="flex items-center gap-2">
+                    <span className="max-w-[180px] truncate text-sm">{selectedLabelSummary}</span>
+                  </div>
+                }
+                buttonClassName="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-custom-text-100"
                 optionsClassName="w-64"
               />
               <LabelDropdown
