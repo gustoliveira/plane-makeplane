@@ -1,8 +1,36 @@
 import React from "react";
+import type { ComponentType } from "react";
 // plane imports
 import { AreaChart } from "@plane/propel/charts/area-chart";
 import type { TChartData, TCycleCompletionChartDistribution } from "@plane/types";
-import { renderFormattedDateWithoutYear } from "@plane/utils";
+import { getDate, renderFormattedDateWithoutYear } from "@plane/utils";
+
+type TKpiWeekendXAxisTickProps = {
+  x?: number;
+  y?: number;
+  payload?: {
+    value?: string;
+    payload?: {
+      rawDate?: string;
+    };
+  };
+};
+
+const KpiWeekendXAxisTick = React.memo<TKpiWeekendXAxisTickProps>(({ x = 0, y = 0, payload }) => {
+  const rawDate = getDate(payload?.payload?.rawDate);
+  const isWeekend = rawDate ? [0, 6].includes(rawDate.getDay()) : false;
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text y={0} dy={16} textAnchor="middle" className="text-sm" fill={isWeekend ? "#ef4444" : "currentColor"}>
+        {payload?.value}
+      </text>
+    </g>
+  );
+});
+KpiWeekendXAxisTick.displayName = "KpiWeekendXAxisTick";
+
+const KpiWeekendXAxisTickComponent = KpiWeekendXAxisTick as unknown as ComponentType<unknown>;
 
 type Props = {
   distribution: TCycleCompletionChartDistribution;
@@ -38,6 +66,7 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
 
   const chartData = distributionKeys.map((key, index) => ({
     name: renderFormattedDateWithoutYear(key),
+    rawDate: key,
     current: normalizeCurrentValue(distribution[key]),
     ideal: totalEstimatePoints * (1 - index / stepCount),
   })) as unknown as TChartData<string, string>[];
@@ -76,6 +105,7 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
         ]}
         xAxis={{ key: "name", label: "Time" }}
         yAxis={{ key: "current", label: "Remaining points", domain: [0, Math.max(totalEstimatePoints, 1)] }}
+        customTicks={{ x: KpiWeekendXAxisTickComponent }}
         margin={{ bottom: 30 }}
         className="h-[370px] w-full"
         legend={{
