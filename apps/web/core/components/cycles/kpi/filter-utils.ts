@@ -1,4 +1,4 @@
-import type { TIssue, TCycleCompletionChartDistribution } from "@plane/types";
+import type { IIssueLabel, TIssue, TCycleCompletionChartDistribution } from "@plane/types";
 import { getDate } from "@plane/utils";
 
 type TBuildCycleKpiBurndownParams = {
@@ -7,6 +7,13 @@ type TBuildCycleKpiBurndownParams = {
   selectedAssigneeIds: string[];
   cycleStartDate: Date;
   cycleEndDate: Date;
+  getEstimatePointValue: (estimatePointId: string | null) => number;
+};
+
+type TBuildCycleKpiLabelPointsParams = {
+  issues: TIssue[];
+  projectLabels: IIssueLabel[];
+  selectedAssigneeIds: string[];
   getEstimatePointValue: (estimatePointId: string | null) => number;
 };
 
@@ -21,6 +28,23 @@ export type TCycleKpiBurndownData = {
   matchingEstimatedIssuesCount: number;
 };
 
+export type TCycleKpiLabelPointsItem = {
+  key: string;
+  name: string;
+  color: string;
+  points: number;
+  issueCount: number;
+};
+
+export type TCycleKpiLabelPointsData = {
+  data: TCycleKpiLabelPointsItem[];
+  matchingIssuesCount: number;
+  matchingEstimatedIssuesCount: number;
+};
+
+const NO_LABEL_KEY = "__no_label__";
+const DEFAULT_BAR_COLOR = "#3F76FF";
+
 const getDateKey = (date: Date) => {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, "0");
@@ -30,6 +54,12 @@ const getDateKey = (date: Date) => {
 };
 
 const normalizeDate = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const matchesAssigneeFilter = (issue: TIssue, selectedAssigneeSet: Set<string>) =>
+  selectedAssigneeSet.size === 0 || issue.assignee_ids?.some((assigneeId) => selectedAssigneeSet.has(assigneeId));
+
+const matchesLabelFilter = (issue: TIssue, selectedLabelSet: Set<string>) =>
+  selectedLabelSet.size === 0 || issue.label_ids?.some((labelId) => selectedLabelSet.has(labelId));
 
 const getDateRange = (startDate: Date, endDate: Date) => {
   const dates: Date[] = [];
@@ -57,9 +87,7 @@ export const buildCycleKpiBurndownData = ({
   const today = normalizeDate(new Date());
   const chartCutoffDate = cycleEndDate < today ? normalizeDate(cycleEndDate) : today;
   const matchingIssues = issues.filter(
-    (issue) =>
-      (selectedLabelSet.size === 0 || issue.label_ids?.some((labelId) => selectedLabelSet.has(labelId))) &&
-      (selectedAssigneeSet.size === 0 || issue.assignee_ids?.some((assigneeId) => selectedAssigneeSet.has(assigneeId)))
+    (issue) => matchesLabelFilter(issue, selectedLabelSet) && matchesAssigneeFilter(issue, selectedAssigneeSet)
   );
 
   const estimatedIssues = matchingIssues
@@ -109,5 +137,63 @@ export const buildCycleKpiBurndownData = ({
     currentCompletedEstimatePoints,
     matchingIssuesCount: matchingIssues.length,
     matchingEstimatedIssuesCount: estimatedIssues.length,
+  };
+};
+
+export const buildCycleKpiLabelPointsData = ({
+  issues,
+  projectLabels,
+  selectedAssigneeIds,
+  getEstimatePointValue,
+}: TBuildCycleKpiLabelPointsParams): TCycleKpiLabelPointsData => {
+  const selectedAssigneeSet = new Set(selectedAssigneeIds);
+  const matchingIssues = issues.filter((issue) => matchesAssigneeFilter(issue, selectedAssigneeSet));
+  const labelById = new Map(projectLabels.map((label) => [label.id, label]));
+  const labelPointsMap = new Map<string, { points: number; issueIds: Set<string> }>();
+
+  let matchingEstimatedIssuesCount = 0;
+
+  matchingIssues.forEach((issue) => {
+    const estimatePoints = getEstimatePointValue(issue.estimate_point);
+    if (estimatePoints <= 0) return;
+
+    matchingEstimatedIssuesCount += 1;
+    const issueLabelIds = issue.label_ids?.length ? Array.from(new Set(issue.label_ids)) : [NO_LABEL_KEY];
+
+    issueLabelIds.forEach((labelId) => {
+      const current = labelPointsMap.get(labelId) ?? { points: 0, issueIds: new Set<string>() };
+      current.points += estimatePoints;
+      current.issueIds.add(issue.id);
+      labelPointsMap.set(labelId, current);
+    });
+  });
+
+  const data = Array.from(labelPointsMap.entries())
+    .map(([labelId, aggregate]) => {
+      if (labelId === NO_LABEL_KEY) {
+        return {
+          key: labelId,
+          name: "No label",
+          color: DEFAULT_BAR_COLOR,
+          points: aggregate.points,
+          issueCount: aggregate.issueIds.size,
+        };
+      }
+
+      const label = labelById.get(labelId);
+      return {
+        key: labelId,
+        name: label?.name ?? "Unknown label",
+        color: label?.color ?? DEFAULT_BAR_COLOR,
+        points: aggregate.points,
+        issueCount: aggregate.issueIds.size,
+      };
+    })
+    .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
+
+  return {
+    data,
+    matchingIssuesCount: matchingIssues.length,
+    matchingEstimatedIssuesCount,
   };
 };
