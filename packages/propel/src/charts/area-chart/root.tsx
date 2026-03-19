@@ -27,7 +27,11 @@ export const AreaChart = React.memo(<K extends string, T extends string>(props: 
     showTooltip = true,
     comparisonLine,
   } = props;
-  const extendedXAxis = xAxis as typeof xAxis & { interval?: number; ticks?: Array<string | number> };
+  const extendedXAxis = xAxis as typeof xAxis & {
+    interval?: number;
+    minTickGap?: number;
+    ticks?: Array<string | number>;
+  };
   // states
   const [activeArea, setActiveArea] = useState<string | null>(null);
   const [activeLegend, setActiveLegend] = useState<string | null>(null);
@@ -117,6 +121,7 @@ export const AreaChart = React.memo(<K extends string, T extends string>(props: 
           <XAxis
             dataKey={xAxis.key}
             interval={extendedXAxis.interval}
+            minTickGap={extendedXAxis.minTickGap}
             ticks={extendedXAxis.ticks}
             tick={(props) => {
               const TickComponent = customTicks?.x || CustomXAxisTick;

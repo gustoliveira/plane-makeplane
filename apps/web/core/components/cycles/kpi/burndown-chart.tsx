@@ -20,7 +20,14 @@ const KpiWeekendXAxisTick = React.memo<TKpiWeekendXAxisTickProps>(({ x = 0, y = 
 
   return (
     <g transform={`translate(${x},${y})`}>
-      <text y={0} dy={16} textAnchor="middle" className="text-sm" fill={isWeekend ? "#ef4444" : "#6b7280"}>
+      <text
+        y={0}
+        dy={18}
+        textAnchor="end"
+        transform="rotate(-32)"
+        className="text-xs"
+        fill={isWeekend ? "#ef4444" : "#6b7280"}
+      >
         {label}
       </text>
     </g>
@@ -43,12 +50,15 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
     key: "rawDate",
     label: "Time",
     interval: 0,
+    minTickGap: 0,
     ticks: distributionKeys,
   } as unknown as {
     key: string;
     label?: string;
     strokeColor?: string;
     dy?: number;
+    minTickGap?: number;
+    ticks?: Array<string | number>;
   };
 
   const rawValues = distributionKeys
@@ -114,7 +124,7 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
         xAxis={xAxisConfig}
         yAxis={{ key: "current", label: "Remaining points", domain: [0, Math.max(totalEstimatePoints, 1)] }}
         customTicks={{ x: KpiWeekendXAxisTickComponent }}
-        margin={{ bottom: 30 }}
+        margin={{ bottom: 48 }}
         className="h-[370px] w-full"
         legend={{
           align: "center",
