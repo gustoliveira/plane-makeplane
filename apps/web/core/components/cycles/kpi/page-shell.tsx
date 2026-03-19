@@ -57,6 +57,25 @@ const fetchAllCycleIssues = async (workspaceSlug: string, projectId: string, cyc
   return Array.from(new Map(allIssues.map((issue) => [issue.id, issue])).values());
 };
 
+const countBusinessDaysUntilEnd = (endDate: Date | null | undefined) => {
+  if (!endDate) return null;
+
+  const today = new Date();
+  const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const lastDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+  if (lastDate < cursor) return 0;
+
+  let businessDays = 0;
+  while (cursor <= lastDate) {
+    const day = cursor.getDay();
+    if (day !== 0 && day !== 6) businessDays += 1;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return businessDays;
+};
+
 export const CycleKpiPageShell = observer(() => {
   const router = useAppRouter();
   const { workspaceSlug, projectId, cycleId } = useParams() as {
@@ -203,6 +222,11 @@ export const CycleKpiPageShell = observer(() => {
     cycle?.start_date && cycle?.end_date
       ? `${renderFormattedDateWithoutYear(cycle.start_date)} - ${renderFormattedDateWithoutYear(cycle.end_date)}`
       : "Dates not configured";
+  const businessDaysUntilEnd = countBusinessDaysUntilEnd(cycleEndDate);
+  const businessDaysUntilEndLabel =
+    businessDaysUntilEnd === null
+      ? "Not available"
+      : `${businessDaysUntilEnd} business day${businessDaysUntilEnd === 1 ? "" : "s"}`;
 
   useEffect(() => {
     const availableLabelSet = new Set(availableLabels.map((label) => label.id));
@@ -316,7 +340,7 @@ export const CycleKpiPageShell = observer(() => {
           </div>
 
           <div className="mt-6 grid grid-cols-3 gap-3">
-            <KpiStat label="Project" value={project?.name ?? "Project"} />
+            <KpiStat label="Business days left" value={businessDaysUntilEndLabel} />
             <KpiStat label="Cycle dates" value={dateRangeLabel} />
             <KpiStat label="Estimate scope" value={`${totalEstimatePoints} points`} />
           </div>
