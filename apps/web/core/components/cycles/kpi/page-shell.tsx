@@ -362,7 +362,7 @@ export const CycleKpiPageShell = observer(() => {
               {(selectedLabelIds.length > 0 || selectedAssigneeIds.length > 0) && (
                 <button
                   type="button"
-                  className="flex items-center gap-1 rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-xs font-medium text-custom-text-200 transition-colors hover:text-custom-text-100"
+                  className="flex items-center gap-1 rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-1 text-xs font-medium text-custom-text-200 transition-colors hover:text-custom-text-100"
                   onClick={() => {
                     setSelectedLabelIds([]);
                     setSelectedAssigneeIds([]);
