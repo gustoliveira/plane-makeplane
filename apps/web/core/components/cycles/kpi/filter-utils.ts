@@ -15,7 +15,6 @@ type TBuildCycleKpiLabelPointsParams = {
   projectLabels: IIssueLabel[];
   selectedLabelIds: string[];
   selectedAssigneeIds: string[];
-  cycleEndDate: Date;
   getEstimatePointValue: (estimatePointId: string | null) => number;
 };
 
@@ -71,6 +70,7 @@ const NO_LABEL_KEY = "__no_label__";
 const UNKNOWN_LABEL_KEY = "__unknown_label__";
 const NO_STATE_KEY = "__no_state__";
 const UNKNOWN_STATE_KEY = "__unknown_state__";
+const LATE_COMPLETED_STATE_KEY = "__late_completed_state__";
 const DEFAULT_BAR_COLOR = "#3F76FF";
 
 const getDateKey = (date: Date) => {
@@ -88,11 +88,6 @@ const getChartCutoffDate = (cycleEndDate: Date) => {
   const normalizedCycleEndDate = normalizeDate(cycleEndDate);
 
   return normalizedCycleEndDate < today ? normalizedCycleEndDate : today;
-};
-
-const isIssueWithinTimeCap = (issue: TIssue, chartCutoffDate: Date) => {
-  const completedDate = getDate(issue.completed_at);
-  return !completedDate || completedDate <= chartCutoffDate;
 };
 
 const matchesAssigneeFilter = (issue: TIssue, selectedAssigneeSet: Set<string>) =>
@@ -185,22 +180,19 @@ export const buildCycleKpiLabelPointsData = ({
   projectLabels,
   selectedLabelIds,
   selectedAssigneeIds,
-  cycleEndDate,
   getEstimatePointValue,
 }: TBuildCycleKpiLabelPointsParams): TCycleKpiLabelPointsData => {
   const selectedLabelSet = new Set(selectedLabelIds);
   const selectedAssigneeSet = new Set(selectedAssigneeIds);
-  const chartCutoffDate = getChartCutoffDate(cycleEndDate);
   const matchingIssues = issues.filter(
     (issue) => matchesLabelFilter(issue, selectedLabelSet) && matchesAssigneeFilter(issue, selectedAssigneeSet)
   );
-  const timeCappedIssues = matchingIssues.filter((issue) => isIssueWithinTimeCap(issue, chartCutoffDate));
   const labelById = new Map(projectLabels.map((label) => [label.id, label]));
   const labelPointsMap = new Map<string, { points: number; issueIds: Set<string> }>();
 
   let matchingEstimatedIssuesCount = 0;
 
-  timeCappedIssues.forEach((issue) => {
+  matchingIssues.forEach((issue) => {
     const estimatePoints = getEstimatePointValue(issue.estimate_point);
     if (estimatePoints <= 0) return;
 
@@ -254,7 +246,7 @@ export const buildCycleKpiLabelPointsData = ({
 
   return {
     data,
-    matchingIssuesCount: timeCappedIssues.length,
+    matchingIssuesCount: matchingIssues.length,
     matchingEstimatedIssuesCount,
   };
 };
@@ -273,17 +265,25 @@ export const buildCycleKpiStatePointsData = ({
   const matchingIssues = issues.filter(
     (issue) => matchesLabelFilter(issue, selectedLabelSet) && matchesAssigneeFilter(issue, selectedAssigneeSet)
   );
-  const timeCappedIssues = matchingIssues.filter((issue) => isIssueWithinTimeCap(issue, chartCutoffDate));
   const stateById = new Map(projectStates.map((state) => [state.id, state]));
   const statePointsMap = new Map<string, { points: number; issueIds: Set<string> }>();
 
   let matchingEstimatedIssuesCount = 0;
 
-  timeCappedIssues.forEach((issue) => {
+  matchingIssues.forEach((issue) => {
     const estimatePoints = getEstimatePointValue(issue.estimate_point);
     if (estimatePoints <= 0) return;
 
     matchingEstimatedIssuesCount += 1;
+
+    const completedDate = getDate(issue.completed_at);
+    if (completedDate && completedDate > chartCutoffDate) {
+      const current = statePointsMap.get(LATE_COMPLETED_STATE_KEY) ?? { points: 0, issueIds: new Set<string>() };
+      current.points += estimatePoints;
+      current.issueIds.add(issue.id);
+      statePointsMap.set(LATE_COMPLETED_STATE_KEY, current);
+      return;
+    }
 
     let stateKey = NO_STATE_KEY;
     if (issue.state_id) {
@@ -318,6 +318,16 @@ export const buildCycleKpiStatePointsData = ({
         };
       }
 
+      if (stateKey === LATE_COMPLETED_STATE_KEY) {
+        return {
+          key: stateKey,
+          name: "Completed after cycle end",
+          color: "#F59E0B",
+          points: aggregate.points,
+          issueCount: aggregate.issueIds.size,
+        };
+      }
+
       const state = stateById.get(stateKey);
       return {
         key: stateKey,
@@ -331,7 +341,7 @@ export const buildCycleKpiStatePointsData = ({
 
   return {
     data,
-    matchingIssuesCount: timeCappedIssues.length,
+    matchingIssuesCount: matchingIssues.length,
     matchingEstimatedIssuesCount,
   };
 };
