@@ -10,20 +10,18 @@ type TKpiWeekendXAxisTickProps = {
   y?: number;
   payload?: {
     value?: string;
-    payload?: {
-      rawDate?: string;
-    };
   };
 };
 
 const KpiWeekendXAxisTick = React.memo<TKpiWeekendXAxisTickProps>(({ x = 0, y = 0, payload }) => {
-  const rawDate = getDate(payload?.payload?.rawDate);
+  const rawDate = getDate(payload?.value);
   const isWeekend = rawDate ? [0, 6].includes(rawDate.getDay()) : false;
+  const label = payload?.value ? renderFormattedDateWithoutYear(payload.value) : "";
 
   return (
     <g transform={`translate(${x},${y})`}>
-      <text y={0} dy={16} textAnchor="middle" className="text-sm" fill={isWeekend ? "#ef4444" : "currentColor"}>
-        {payload?.value}
+      <text y={0} dy={16} textAnchor="middle" className="text-sm" fill={isWeekend ? "#ef4444" : "#6b7280"}>
+        {label}
       </text>
     </g>
   );
@@ -65,7 +63,6 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
   };
 
   const chartData = distributionKeys.map((key, index) => ({
-    name: renderFormattedDateWithoutYear(key),
     rawDate: key,
     current: normalizeCurrentValue(distribution[key]),
     ideal: totalEstimatePoints * (1 - index / stepCount),
@@ -103,7 +100,7 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
             },
           },
         ]}
-        xAxis={{ key: "name", label: "Time" }}
+        xAxis={{ key: "rawDate", label: "Time" }}
         yAxis={{ key: "current", label: "Remaining points", domain: [0, Math.max(totalEstimatePoints, 1)] }}
         customTicks={{ x: KpiWeekendXAxisTickComponent }}
         margin={{ bottom: 30 }}
