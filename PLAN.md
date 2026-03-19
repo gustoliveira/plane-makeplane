@@ -39,6 +39,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Added a new phase 8 plan for KPI burndown filters so labels and other filter dimensions can be implemented in a dedicated follow-up without changing the current phase ordering. Touched files: `PLAN.md`.
 - [x] 2026-03-17: Added a KPI-only tendency line to `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, mirroring the expected burndown behavior without altering the existing cycle-page chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Implemented phase 8 label filtering fully on the frontend by fetching cycle issues, project labels, and project estimates on the KPI page, then recomputing the burndown client-side for the selected labels. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
+- [x] 2026-03-17: Aligned the KPI summary cards with the burndown chart cutoff logic so completed and remaining points now use the same effective date as the chart instead of counting work completed after the cycle end. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -57,6 +58,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after adding the KPI tendency line.
 - [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/page-shell.tsx" "core/components/cycles/kpi/burndown-chart.tsx"` passed after implementing client-side label filtering.
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after implementing client-side label filtering.
+- [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/page-shell.tsx"` passed after aligning KPI cards with the burndown cutoff logic.
+- [x] 2026-03-17: `pnpm --filter web check:types` passed after aligning KPI cards with the burndown cutoff logic.
 
 ## Investigation Summary
 

@@ -14,6 +14,8 @@ export type TCycleKpiBurndownData = {
   totalEstimatePoints: number;
   completedEstimatePoints: number;
   pendingEstimatePoints: number;
+  currentRemainingEstimatePoints: number;
+  currentCompletedEstimatePoints: number;
   matchingIssuesCount: number;
   matchingEstimatedIssuesCount: number;
 };
@@ -50,6 +52,7 @@ export const buildCycleKpiBurndownData = ({
 }: TBuildCycleKpiBurndownParams): TCycleKpiBurndownData => {
   const selectedLabelSet = new Set(selectedLabelIds);
   const today = normalizeDate(new Date());
+  const chartCutoffDate = cycleEndDate < today ? normalizeDate(cycleEndDate) : today;
   const matchingIssues = issues.filter(
     (issue) => selectedLabelSet.size === 0 || issue.label_ids?.some((labelId) => selectedLabelSet.has(labelId))
   );
@@ -66,6 +69,10 @@ export const buildCycleKpiBurndownData = ({
   const completedEstimatePoints = estimatedIssues.reduce((total, item) => {
     if (!item.completedDate || item.issue.state__group === "cancelled") return total;
     return total + item.estimatePoints;
+  }, 0);
+  const currentCompletedEstimatePoints = estimatedIssues.reduce((total, item) => {
+    if (!item.completedDate || item.issue.state__group === "cancelled") return total;
+    return item.completedDate <= chartCutoffDate ? total + item.estimatePoints : total;
   }, 0);
 
   const distribution = getDateRange(cycleStartDate, cycleEndDate).reduce<TCycleCompletionChartDistribution>(
@@ -92,7 +99,9 @@ export const buildCycleKpiBurndownData = ({
     distribution,
     totalEstimatePoints,
     completedEstimatePoints,
-    pendingEstimatePoints: Math.max(0, totalEstimatePoints - completedEstimatePoints),
+    pendingEstimatePoints: Math.max(0, totalEstimatePoints - currentCompletedEstimatePoints),
+    currentRemainingEstimatePoints: Math.max(0, totalEstimatePoints - currentCompletedEstimatePoints),
+    currentCompletedEstimatePoints,
     matchingIssuesCount: matchingIssues.length,
     matchingEstimatedIssuesCount: estimatedIssues.length,
   };

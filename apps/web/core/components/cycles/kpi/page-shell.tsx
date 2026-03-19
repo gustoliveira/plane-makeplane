@@ -192,8 +192,8 @@ export const CycleKpiPageShell = observer(() => {
     (cycle?.progress_snapshot?.started_estimate_points ?? cycle?.started_estimate_points ?? 0);
 
   const totalEstimatePoints = filteredBurndown?.totalEstimatePoints ?? defaultTotalEstimatePoints;
-  const completedEstimatePoints = filteredBurndown?.completedEstimatePoints ?? defaultCompletedEstimatePoints;
-  const pendingEstimatePoints = filteredBurndown?.pendingEstimatePoints ?? defaultPendingEstimatePoints;
+  const completedEstimatePoints = filteredBurndown?.currentCompletedEstimatePoints ?? defaultCompletedEstimatePoints;
+  const pendingEstimatePoints = filteredBurndown?.currentRemainingEstimatePoints ?? defaultPendingEstimatePoints;
   const matchingIssuesCount = filteredBurndown?.matchingIssuesCount ?? 0;
   const matchingEstimatedIssuesCount = filteredBurndown?.matchingEstimatedIssuesCount ?? 0;
   const burndownDistribution = filteredBurndown?.distribution;
