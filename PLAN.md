@@ -44,6 +44,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Aligned the KPI summary cards with the burndown chart cutoff logic so completed and remaining points now use the same effective date as the chart instead of counting work completed after the cycle end. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Styled weekend days in the KPI burndown x-axis as red labels in `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, keeping the change scoped to the KPI chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Fixed the KPI weekend-day styling by driving the x-axis from raw ISO dates instead of preformatted labels, so the weekend tick renderer can correctly identify Saturdays and Sundays before formatting them. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
+- [x] 2026-03-17: Forced the KPI burndown x-axis to render every day individually by passing explicit daily ticks and `interval: 0` through the shared area chart component. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `packages/propel/src/charts/area-chart/root.tsx`, `packages/types/src/charts/index.ts`, `PLAN.md`.
 
 ## Test Log
 
@@ -72,6 +73,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after styling weekend labels in the KPI burndown chart.
 - [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/burndown-chart.tsx"` passed after fixing the KPI weekend-date tick source.
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after fixing the KPI weekend-date tick source.
+- [x] 2026-03-17: `pnpm exec eslint "apps/web/core/components/cycles/kpi/burndown-chart.tsx" "packages/propel/src/charts/area-chart/root.tsx"` passed after forcing the KPI x-axis to render every day individually.
+- [x] 2026-03-17: `pnpm --filter web check:types` passed after forcing the KPI x-axis to render every day individually.
 
 ## Investigation Summary
 

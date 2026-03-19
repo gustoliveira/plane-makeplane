@@ -37,6 +37,8 @@ export type TAxisChartProps<K extends string, T extends string> = TBaseChartProp
     label?: string;
     strokeColor?: string;
     dy?: number;
+    interval?: number;
+    ticks?: Array<string | number>;
   };
   yAxis: {
     allowDecimals?: boolean;

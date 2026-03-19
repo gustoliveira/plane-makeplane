@@ -39,6 +39,17 @@ type Props = {
 export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimatePoints, className = "" }) => {
   const distributionKeys = Object.keys(distribution ?? []);
   const stepCount = Math.max(distributionKeys.length - 1, 1);
+  const xAxisConfig = {
+    key: "rawDate",
+    label: "Time",
+    interval: 0,
+    ticks: distributionKeys,
+  } as unknown as {
+    key: string;
+    label?: string;
+    strokeColor?: string;
+    dy?: number;
+  };
 
   const rawValues = distributionKeys
     .map((key) => distribution[key])
@@ -100,7 +111,7 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
             },
           },
         ]}
-        xAxis={{ key: "rawDate", label: "Time" }}
+        xAxis={xAxisConfig}
         yAxis={{ key: "current", label: "Remaining points", domain: [0, Math.max(totalEstimatePoints, 1)] }}
         customTicks={{ x: KpiWeekendXAxisTickComponent }}
         margin={{ bottom: 30 }}
