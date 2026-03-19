@@ -3,44 +3,25 @@ import type { ComponentType } from "react";
 // plane imports
 import { AreaChart } from "@plane/propel/charts/area-chart";
 import type { TChartData, TCycleCompletionChartDistribution } from "@plane/types";
-import { getDate } from "@plane/utils";
+import { getDate, renderFormattedDateWithoutYear } from "@plane/utils";
 
 type TKpiWeekendXAxisTickProps = {
   x?: number;
   y?: number;
-  firstDateValue?: string;
   payload?: {
     value?: string;
   };
 };
 
-const KpiWeekendXAxisTick = React.memo<TKpiWeekendXAxisTickProps>(({ x = 0, y = 0, payload, firstDateValue }) => {
-  const rawDate = getDate(payload?.value);
-  const isWeekend = rawDate ? [0, 6].includes(rawDate.getDay()) : false;
-  const showMonth = !!rawDate && (payload?.value === firstDateValue || rawDate.getDate() === 1);
-  const dayLabel = rawDate ? `${rawDate.getDate()}`.padStart(2, "0") : "";
-  const monthLabel = rawDate
-    ? rawDate.toLocaleString("en-US", {
-        month: "short",
-      })
-    : "";
-  const tickColor = isWeekend ? "#ef4444" : "#6b7280";
-
-  return (
+const KpiWeekendXAxisTick = React.memo<TKpiWeekendXAxisTickProps & { isWeekend?: boolean }>(
+  ({ x = 0, y = 0, payload, isWeekend = false }) => (
     <g transform={`translate(${x},${y})`}>
-      <text textAnchor="middle" fill={tickColor}>
-        {showMonth && (
-          <tspan x={0} dy={12} fontSize="10">
-            {monthLabel}
-          </tspan>
-        )}
-        <tspan x={0} dy={showMonth ? 12 : 16} fontSize="11" fontWeight="500">
-          {dayLabel}
-        </tspan>
+      <text y={0} dy={16} textAnchor="middle" className="text-sm" fill={isWeekend ? "#ef4444" : "#6b7280"}>
+        {payload?.value}
       </text>
     </g>
-  );
-});
+  )
+);
 KpiWeekendXAxisTick.displayName = "KpiWeekendXAxisTick";
 
 type Props = {
@@ -52,23 +33,14 @@ type Props = {
 export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimatePoints, className = "" }) => {
   const distributionKeys = Object.keys(distribution ?? []);
   const stepCount = Math.max(distributionKeys.length - 1, 1);
-  const firstDateValue = distributionKeys[0];
-  const xAxisConfig = {
-    key: "rawDate",
-    label: "Time",
-    height: 48,
-    interval: 0,
-    minTickGap: 0,
-    ticks: distributionKeys,
-  } as unknown as {
-    key: string;
-    label?: string;
-    height?: number;
-    strokeColor?: string;
-    dy?: number;
-    minTickGap?: number;
-    ticks?: Array<string | number>;
-  };
+  const weekendLabels = new Set(
+    distributionKeys
+      .filter((key) => {
+        const date = getDate(key);
+        return !!date && [0, 6].includes(date.getDay());
+      })
+      .map((key) => renderFormattedDateWithoutYear(key))
+  );
 
   const rawValues = distributionKeys
     .map((key) => distribution[key])
@@ -93,13 +65,16 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
   };
 
   const chartData = distributionKeys.map((key, index) => ({
-    rawDate: key,
+    name: renderFormattedDateWithoutYear(key),
     current: normalizeCurrentValue(distribution[key]),
     ideal: totalEstimatePoints * (1 - index / stepCount),
   })) as unknown as TChartData<string, string>[];
 
   const WeekendTickComponent = ((props: unknown) => (
-    <KpiWeekendXAxisTick {...(props as TKpiWeekendXAxisTickProps)} firstDateValue={firstDateValue} />
+    <KpiWeekendXAxisTick
+      {...(props as TKpiWeekendXAxisTickProps)}
+      isWeekend={weekendLabels.has((props as TKpiWeekendXAxisTickProps).payload?.value ?? "")}
+    />
   )) as ComponentType<unknown>;
 
   return (
@@ -134,10 +109,10 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
             },
           },
         ]}
-        xAxis={xAxisConfig}
+        xAxis={{ key: "name", label: "Time" }}
         yAxis={{ key: "current", label: "Remaining points", domain: [0, Math.max(totalEstimatePoints, 1)] }}
         customTicks={{ x: WeekendTickComponent }}
-        margin={{ bottom: 40 }}
+        margin={{ bottom: 30 }}
         className="h-[370px] w-full"
         legend={{
           align: "center",
