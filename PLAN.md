@@ -56,6 +56,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-19: Fixed KPI points-by-label filtering to follow the active Burndown KPI filters correctly by making label-store reads reactive in `apps/web/core/components/cycles/kpi/page-shell.tsx` and applying both selected labels and selected assignees in `apps/web/core/components/cycles/kpi/filter-utils.ts`; also consolidated missing label metadata into a single `Unknown label` bucket to avoid duplicate unknown bars. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/cycles/kpi/filter-utils.ts`, `PLAN.md`.
 - [x] 2026-03-19: Added a new Status KPI block below the Label KPI with a points-by-status bar chart (To Do/Done/Blocked/Cancelled/custom states), backed by new state aggregation logic in `apps/web/core/components/cycles/kpi/filter-utils.ts`, a dedicated chart component `apps/web/core/components/cycles/kpi/state-points-chart.tsx`, and state-store wiring in `apps/web/core/components/cycles/kpi/page-shell.tsx`. The new chart follows the same active assignee/label filters used by Burndown KPI. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/state-points-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-19: Aligned Label KPI empty/no-match messaging in `apps/web/core/components/cycles/kpi/page-shell.tsx` to reference active filters (members + labels) instead of members-only wording, matching the filter behavior now shared by burndown, label, and status charts. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
+- [x] 2026-03-19: Time-capped both bar-chart KPIs (label/status) to the same burndown cutoff logic in `apps/web/core/components/cycles/kpi/filter-utils.ts` by excluding items completed after the burndown cutoff date from bar aggregations, and wired `cycleEndDate` into both builders in `apps/web/core/components/cycles/kpi/page-shell.tsx`. Updated KPI copy to clarify time-capped behavior. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -110,6 +111,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-19: `pnpm --filter web check:types` passed after adding the points-by-status KPI block.
 - [x] 2026-03-19: `pnpm --filter web exec eslint "core/components/cycles/kpi/page-shell.tsx" "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/state-points-chart.tsx"` passed after aligning Label KPI active-filter messaging with current filter logic.
 - [x] 2026-03-19: `pnpm --filter web check:types` passed after aligning Label KPI active-filter messaging with current filter logic.
+- [x] 2026-03-19: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/page-shell.tsx"` passed after adding burndown-style time-capping to label/status KPI charts.
+- [x] 2026-03-19: `pnpm --filter web check:types` passed after adding burndown-style time-capping to label/status KPI charts.
 
 ## Investigation Summary
 
@@ -258,6 +261,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] Add a points-by-label bar chart block below Burndown KPI and scope it with the same member filter selection used by the burndown chart.
 - [x] Keep the points-by-label chart scoped to the active KPI filters and ensure unknown/deleted label metadata does not render as multiple indistinguishable `Unknown label` bars.
 - [x] Add a points-by-status bar chart block below Label KPI and scope it to the same active KPI filters (members and labels), while supporting custom project states.
+- [x] Ensure both bar-chart KPIs (points by label and points by status) apply the same burndown time-cap semantics so work completed after cycle end does not appear in those bar-chart totals.
 
 ## Automated Test Checklist
 

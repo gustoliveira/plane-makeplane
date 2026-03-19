@@ -238,34 +238,36 @@ export const CycleKpiPageShell = observer(() => {
   }, [cycleIssues, selectedLabelIds, selectedAssigneeIds, cycleStartDate, cycleEndDate, activeEstimate]);
 
   const labelPointsData = useMemo(() => {
-    if (!activeEstimate) return undefined;
+    if (!activeEstimate || !cycleEndDate) return undefined;
 
     return buildCycleKpiLabelPointsData({
       issues: cycleIssues,
       projectLabels,
       selectedLabelIds,
       selectedAssigneeIds,
+      cycleEndDate,
       getEstimatePointValue: (estimatePointId) => {
         if (!estimatePointId) return 0;
         return Number(activeEstimate.estimatePointById(estimatePointId)?.value ?? 0);
       },
     });
-  }, [cycleIssues, projectLabels, selectedLabelIds, selectedAssigneeIds, activeEstimate]);
+  }, [cycleIssues, projectLabels, selectedLabelIds, selectedAssigneeIds, cycleEndDate, activeEstimate]);
 
   const statePointsData = useMemo(() => {
-    if (!activeEstimate) return undefined;
+    if (!activeEstimate || !cycleEndDate) return undefined;
 
     return buildCycleKpiStatePointsData({
       issues: cycleIssues,
       projectStates,
       selectedLabelIds,
       selectedAssigneeIds,
+      cycleEndDate,
       getEstimatePointValue: (estimatePointId) => {
         if (!estimatePointId) return 0;
         return Number(activeEstimate.estimatePointById(estimatePointId)?.value ?? 0);
       },
     });
-  }, [cycleIssues, projectStates, selectedLabelIds, selectedAssigneeIds, activeEstimate]);
+  }, [cycleIssues, projectStates, selectedLabelIds, selectedAssigneeIds, cycleEndDate, activeEstimate]);
 
   const defaultTotalEstimatePoints =
     cycle?.progress_snapshot?.total_estimate_points ?? cycle?.total_estimate_points ?? 0;
@@ -521,7 +523,8 @@ export const CycleKpiPageShell = observer(() => {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-custom-primary-100">Label KPI</p>
               <h2 className="text-lg font-semibold text-custom-text-100">Points by label</h2>
               <p className="max-w-2xl text-sm text-custom-text-300">
-                This chart groups estimate points by label and follows the same active filters used in Burndown KPI.
+                This chart groups estimate points by label and uses the same active filters and time-capped cutoff used
+                in Burndown KPI.
               </p>
             </div>
 
@@ -567,8 +570,8 @@ export const CycleKpiPageShell = observer(() => {
                   <p className="text-sm font-medium text-custom-text-100">Points by label chart</p>
                   <p className="text-sm text-custom-text-300">
                     {selectedAssigneeIds.length > 0 || selectedLabelIds.length > 0
-                      ? "Only estimated work items matching the active member and label filters are included."
-                      : "All estimated work items in the cycle are included."}
+                      ? "Only estimated work items matching the active filters and burndown time-cap are included."
+                      : "All estimated work items within the burndown time-cap are included."}
                   </p>
                 </div>
                 <KpiLabelPointsChart data={labelPointsChartData} className="min-h-[350px]" />
@@ -591,7 +594,7 @@ export const CycleKpiPageShell = observer(() => {
               <h2 className="text-lg font-semibold text-custom-text-100">Points by status</h2>
               <p className="max-w-2xl text-sm text-custom-text-300">
                 This chart groups estimate points by workflow state (for example To Do, Done, Blocked, Cancelled, and
-                custom states like Refinement or Acceptance).
+                custom states like Refinement or Acceptance) and uses the same time-capped cutoff as Burndown KPI.
               </p>
             </div>
 
@@ -638,8 +641,8 @@ export const CycleKpiPageShell = observer(() => {
                   <p className="text-sm font-medium text-custom-text-100">Points by status chart</p>
                   <p className="text-sm text-custom-text-300">
                     {selectedAssigneeIds.length > 0 || selectedLabelIds.length > 0
-                      ? "Only estimated work items matching the active member and label filters are included."
-                      : "All estimated work items in the cycle are included."}
+                      ? "Only estimated work items matching the active filters and burndown time-cap are included."
+                      : "All estimated work items within the burndown time-cap are included."}
                   </p>
                 </div>
                 <KpiStatePointsChart data={statePointsChartData} className="min-h-[350px]" />
