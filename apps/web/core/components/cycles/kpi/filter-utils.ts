@@ -1,4 +1,4 @@
-import type { IIssueLabel, TIssue, TCycleCompletionChartDistribution } from "@plane/types";
+import type { IIssueLabel, IState, TIssue, TCycleCompletionChartDistribution } from "@plane/types";
 import { getDate } from "@plane/utils";
 
 type TBuildCycleKpiBurndownParams = {
@@ -13,6 +13,14 @@ type TBuildCycleKpiBurndownParams = {
 type TBuildCycleKpiLabelPointsParams = {
   issues: TIssue[];
   projectLabels: IIssueLabel[];
+  selectedLabelIds: string[];
+  selectedAssigneeIds: string[];
+  getEstimatePointValue: (estimatePointId: string | null) => number;
+};
+
+type TBuildCycleKpiStatePointsParams = {
+  issues: TIssue[];
+  projectStates: IState[];
   selectedLabelIds: string[];
   selectedAssigneeIds: string[];
   getEstimatePointValue: (estimatePointId: string | null) => number;
@@ -43,8 +51,24 @@ export type TCycleKpiLabelPointsData = {
   matchingEstimatedIssuesCount: number;
 };
 
+export type TCycleKpiStatePointsItem = {
+  key: string;
+  name: string;
+  color: string;
+  points: number;
+  issueCount: number;
+};
+
+export type TCycleKpiStatePointsData = {
+  data: TCycleKpiStatePointsItem[];
+  matchingIssuesCount: number;
+  matchingEstimatedIssuesCount: number;
+};
+
 const NO_LABEL_KEY = "__no_label__";
 const UNKNOWN_LABEL_KEY = "__unknown_label__";
+const NO_STATE_KEY = "__no_state__";
+const UNKNOWN_STATE_KEY = "__unknown_state__";
 const DEFAULT_BAR_COLOR = "#3F76FF";
 
 const getDateKey = (date: Date) => {
@@ -205,6 +229,80 @@ export const buildCycleKpiLabelPointsData = ({
         key: labelId,
         name: label?.name ?? "Unknown label",
         color: label?.color ?? DEFAULT_BAR_COLOR,
+        points: aggregate.points,
+        issueCount: aggregate.issueIds.size,
+      };
+    })
+    .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
+
+  return {
+    data,
+    matchingIssuesCount: matchingIssues.length,
+    matchingEstimatedIssuesCount,
+  };
+};
+
+export const buildCycleKpiStatePointsData = ({
+  issues,
+  projectStates,
+  selectedLabelIds,
+  selectedAssigneeIds,
+  getEstimatePointValue,
+}: TBuildCycleKpiStatePointsParams): TCycleKpiStatePointsData => {
+  const selectedLabelSet = new Set(selectedLabelIds);
+  const selectedAssigneeSet = new Set(selectedAssigneeIds);
+  const matchingIssues = issues.filter(
+    (issue) => matchesLabelFilter(issue, selectedLabelSet) && matchesAssigneeFilter(issue, selectedAssigneeSet)
+  );
+  const stateById = new Map(projectStates.map((state) => [state.id, state]));
+  const statePointsMap = new Map<string, { points: number; issueIds: Set<string> }>();
+
+  let matchingEstimatedIssuesCount = 0;
+
+  matchingIssues.forEach((issue) => {
+    const estimatePoints = getEstimatePointValue(issue.estimate_point);
+    if (estimatePoints <= 0) return;
+
+    matchingEstimatedIssuesCount += 1;
+
+    let stateKey = NO_STATE_KEY;
+    if (issue.state_id) {
+      stateKey = stateById.has(issue.state_id) ? issue.state_id : UNKNOWN_STATE_KEY;
+    }
+
+    const current = statePointsMap.get(stateKey) ?? { points: 0, issueIds: new Set<string>() };
+    current.points += estimatePoints;
+    current.issueIds.add(issue.id);
+    statePointsMap.set(stateKey, current);
+  });
+
+  const data = Array.from(statePointsMap.entries())
+    .map(([stateKey, aggregate]) => {
+      if (stateKey === NO_STATE_KEY) {
+        return {
+          key: stateKey,
+          name: "No state",
+          color: DEFAULT_BAR_COLOR,
+          points: aggregate.points,
+          issueCount: aggregate.issueIds.size,
+        };
+      }
+
+      if (stateKey === UNKNOWN_STATE_KEY) {
+        return {
+          key: stateKey,
+          name: "Unknown state",
+          color: DEFAULT_BAR_COLOR,
+          points: aggregate.points,
+          issueCount: aggregate.issueIds.size,
+        };
+      }
+
+      const state = stateById.get(stateKey);
+      return {
+        key: stateKey,
+        name: state?.name ?? "Unknown state",
+        color: state?.color ?? DEFAULT_BAR_COLOR,
         points: aggregate.points,
         issueCount: aggregate.issueIds.size,
       };
