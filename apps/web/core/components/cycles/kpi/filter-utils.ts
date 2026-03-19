@@ -13,6 +13,7 @@ type TBuildCycleKpiBurndownParams = {
 type TBuildCycleKpiLabelPointsParams = {
   issues: TIssue[];
   projectLabels: IIssueLabel[];
+  selectedLabelIds: string[];
   selectedAssigneeIds: string[];
   getEstimatePointValue: (estimatePointId: string | null) => number;
 };
@@ -43,6 +44,7 @@ export type TCycleKpiLabelPointsData = {
 };
 
 const NO_LABEL_KEY = "__no_label__";
+const UNKNOWN_LABEL_KEY = "__unknown_label__";
 const DEFAULT_BAR_COLOR = "#3F76FF";
 
 const getDateKey = (date: Date) => {
@@ -143,11 +145,15 @@ export const buildCycleKpiBurndownData = ({
 export const buildCycleKpiLabelPointsData = ({
   issues,
   projectLabels,
+  selectedLabelIds,
   selectedAssigneeIds,
   getEstimatePointValue,
 }: TBuildCycleKpiLabelPointsParams): TCycleKpiLabelPointsData => {
+  const selectedLabelSet = new Set(selectedLabelIds);
   const selectedAssigneeSet = new Set(selectedAssigneeIds);
-  const matchingIssues = issues.filter((issue) => matchesAssigneeFilter(issue, selectedAssigneeSet));
+  const matchingIssues = issues.filter(
+    (issue) => matchesLabelFilter(issue, selectedLabelSet) && matchesAssigneeFilter(issue, selectedAssigneeSet)
+  );
   const labelById = new Map(projectLabels.map((label) => [label.id, label]));
   const labelPointsMap = new Map<string, { points: number; issueIds: Set<string> }>();
 
@@ -159,12 +165,16 @@ export const buildCycleKpiLabelPointsData = ({
 
     matchingEstimatedIssuesCount += 1;
     const issueLabelIds = issue.label_ids?.length ? Array.from(new Set(issue.label_ids)) : [NO_LABEL_KEY];
+    const labelIdsToAggregate =
+      selectedLabelSet.size > 0 ? issueLabelIds.filter((labelId) => selectedLabelSet.has(labelId)) : issueLabelIds;
 
-    issueLabelIds.forEach((labelId) => {
-      const current = labelPointsMap.get(labelId) ?? { points: 0, issueIds: new Set<string>() };
+    labelIdsToAggregate.forEach((labelId) => {
+      const aggregationKey =
+        labelId === NO_LABEL_KEY ? NO_LABEL_KEY : labelById.has(labelId) ? labelId : UNKNOWN_LABEL_KEY;
+      const current = labelPointsMap.get(aggregationKey) ?? { points: 0, issueIds: new Set<string>() };
       current.points += estimatePoints;
       current.issueIds.add(issue.id);
-      labelPointsMap.set(labelId, current);
+      labelPointsMap.set(aggregationKey, current);
     });
   });
 
@@ -174,6 +184,16 @@ export const buildCycleKpiLabelPointsData = ({
         return {
           key: labelId,
           name: "No label",
+          color: DEFAULT_BAR_COLOR,
+          points: aggregate.points,
+          issueCount: aggregate.issueIds.size,
+        };
+      }
+
+      if (labelId === UNKNOWN_LABEL_KEY) {
+        return {
+          key: labelId,
+          name: "Unknown label",
           color: DEFAULT_BAR_COLOR,
           points: aggregate.points,
           issueCount: aggregate.issueIds.size,

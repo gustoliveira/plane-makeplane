@@ -53,6 +53,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Properly fixed the KPI daily-axis regression by reverting the raw-date/shared-axis changes and restoring the original short formatted x-axis labels, while coloring weekends through a label-to-date mapping inside `apps/web/core/components/cycles/kpi/burndown-chart.tsx`. This matches the earlier non-collapsed behavior and keeps the fix scoped to the KPI chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `packages/propel/src/charts/area-chart/root.tsx`, `packages/types/src/charts/index.ts`, `PLAN.md`.
 - [x] 2026-03-17: Fixed the final missing-days regression on the KPI burndown chart by reapplying explicit `interval: 0`, `minTickGap: 0`, and explicit string ticks to the restored short-date x-axis. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `packages/propel/src/charts/area-chart/root.tsx`, `packages/types/src/charts/index.ts`, `PLAN.md`.
 - [x] 2026-03-19: Added a new KPI block below Burndown KPI with a points-by-label bar chart, implemented in `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/cycles/kpi/filter-utils.ts`, and new `apps/web/core/components/cycles/kpi/label-points-chart.tsx`. The chart now reuses the same member filter state (`selectedAssigneeIds`) as burndown so assignee selection consistently scopes both visualizations. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/label-points-chart.tsx`, `PLAN.md`.
+- [x] 2026-03-19: Fixed KPI points-by-label filtering to follow the active Burndown KPI filters correctly by making label-store reads reactive in `apps/web/core/components/cycles/kpi/page-shell.tsx` and applying both selected labels and selected assignees in `apps/web/core/components/cycles/kpi/filter-utils.ts`; also consolidated missing label metadata into a single `Unknown label` bucket to avoid duplicate unknown bars. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/cycles/kpi/filter-utils.ts`, `PLAN.md`.
 
 ## Test Log
 
@@ -101,6 +102,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after explicitly forcing all dates to render on the short-date axis.
 - [x] 2026-03-19: `pnpm --filter web exec eslint "core/components/cycles/kpi/page-shell.tsx" "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/label-points-chart.tsx"` passed after adding the points-by-label KPI block.
 - [x] 2026-03-19: `pnpm --filter web check:types` passed after adding the points-by-label KPI block.
+- [x] 2026-03-19: `pnpm --filter web exec eslint "core/components/cycles/kpi/page-shell.tsx" "core/components/cycles/kpi/filter-utils.ts"` passed after fixing points-by-label filter behavior.
+- [x] 2026-03-19: `pnpm --filter web check:types` passed after fixing points-by-label filter behavior.
 
 ## Investigation Summary
 
@@ -247,6 +250,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] Query-string persistence is not added in this phase; the filter remains local to the KPI screen state.
 - [x] Document the final filter-state behavior in this plan before implementation is considered complete.
 - [x] Add a points-by-label bar chart block below Burndown KPI and scope it with the same member filter selection used by the burndown chart.
+- [x] Keep the points-by-label chart scoped to the active KPI filters and ensure unknown/deleted label metadata does not render as multiple indistinguishable `Unknown label` bars.
 
 ## Automated Test Checklist
 

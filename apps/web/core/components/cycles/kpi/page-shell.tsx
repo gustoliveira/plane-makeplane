@@ -106,7 +106,8 @@ export const CycleKpiPageShell = observer(() => {
 
   const cycle = cycleId ? getCycleById(cycleId) : null;
   const project = projectId ? getProjectById(projectId) : null;
-  const projectLabels = useMemo(() => getProjectLabels(projectId) ?? [], [getProjectLabels, projectId]);
+  const rawProjectLabels = getProjectLabels(projectId);
+  const projectLabels = useMemo(() => rawProjectLabels ?? [], [rawProjectLabels]);
   const activeEstimateId = projectId ? currentActiveEstimateIdByProjectId(projectId) : undefined;
   const activeEstimate = activeEstimateId ? getEstimateById(activeEstimateId) : undefined;
 
@@ -232,13 +233,14 @@ export const CycleKpiPageShell = observer(() => {
     return buildCycleKpiLabelPointsData({
       issues: cycleIssues,
       projectLabels,
+      selectedLabelIds,
       selectedAssigneeIds,
       getEstimatePointValue: (estimatePointId) => {
         if (!estimatePointId) return 0;
         return Number(activeEstimate.estimatePointById(estimatePointId)?.value ?? 0);
       },
     });
-  }, [cycleIssues, projectLabels, selectedAssigneeIds, activeEstimate]);
+  }, [cycleIssues, projectLabels, selectedLabelIds, selectedAssigneeIds, activeEstimate]);
 
   const defaultTotalEstimatePoints =
     cycle?.progress_snapshot?.total_estimate_points ?? cycle?.total_estimate_points ?? 0;
@@ -491,12 +493,12 @@ export const CycleKpiPageShell = observer(() => {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-custom-primary-100">Label KPI</p>
               <h2 className="text-lg font-semibold text-custom-text-100">Points by label</h2>
               <p className="max-w-2xl text-sm text-custom-text-300">
-                This chart groups estimate points by label and follows the same member filter used in Burndown KPI.
+                This chart groups estimate points by label and follows the same active filters used in Burndown KPI.
               </p>
             </div>
 
             <div className="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-sm text-custom-text-300">
-              {selectedAssigneeIds.length > 0 ? `Members: ${selectedAssigneesSummary}` : "Members: All users"}
+              {`Members: ${selectedAssigneesSummary} • Labels: ${selectedLabelSummary}`}
             </div>
           </div>
 
@@ -535,8 +537,8 @@ export const CycleKpiPageShell = observer(() => {
                 <div>
                   <p className="text-sm font-medium text-custom-text-100">Points by label chart</p>
                   <p className="text-sm text-custom-text-300">
-                    {selectedAssigneeIds.length > 0
-                      ? "Only estimated work items assigned to the selected members are included."
+                    {selectedAssigneeIds.length > 0 || selectedLabelIds.length > 0
+                      ? "Only estimated work items matching the active member and label filters are included."
                       : "All estimated work items in the cycle are included."}
                   </p>
                 </div>
