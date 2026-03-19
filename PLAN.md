@@ -37,7 +37,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: Isolated the KPI burndown implementation into `apps/web/core/components/cycles/kpi/burndown-chart.tsx` and restored `apps/web/core/components/core/sidebar/progress-chart.tsx` to its shared behavior so the existing cycle-page burndown remains untouched. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `apps/web/core/components/core/sidebar/progress-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Corrected the KPI-only burndown transformation in `apps/web/core/components/cycles/kpi/burndown-chart.tsx` so the chart normalizes unexpected completed-progress payloads into remaining points and clamps values to the valid range, fixing the observed `0` to negative line without affecting the existing cycle-page chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Added a new phase 8 plan for KPI burndown filters so labels and other filter dimensions can be implemented in a dedicated follow-up without changing the current phase ordering. Touched files: `PLAN.md`.
-- [x] 2026-03-17: Added a KPI-only tendency line to `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, mirroring the expected burndown behavior without altering the existing cycle-page chart. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
+- [x] 2026-03-17: Removed the KPI-only `Tendency remaining points` series from `apps/web/core/components/cycles/kpi/burndown-chart.tsx` so the KPI chart now only shows current and ideal remaining points. Touched files: `apps/web/core/components/cycles/kpi/burndown-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Implemented phase 8 label filtering fully on the frontend by fetching cycle issues, project labels, and project estimates on the KPI page, then recomputing the burndown client-side for the selected labels. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Replaced the KPI summary `Project` card with a business-days-until-cycle-end metric in `apps/web/core/components/cycles/kpi/page-shell.tsx` so the top KPI row stays focused on cycle timing and burndown context. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-17: Refined the business-days KPI card wording in `apps/web/core/components/cycles/kpi/page-shell.tsx` so past cycles show `Cycle ended` instead of `0 business days`, which matches the project's cycle-time context better than `finished`. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
@@ -56,8 +56,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after isolating the KPI chart implementation.
 - [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/burndown-chart.tsx" "core/components/cycles/kpi/page-shell.tsx"` passed after correcting the KPI burndown transformation.
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after correcting the KPI burndown transformation.
-- [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/burndown-chart.tsx"` passed after adding the KPI tendency line.
-- [x] 2026-03-17: `pnpm --filter web check:types` passed after adding the KPI tendency line.
+- [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/burndown-chart.tsx"` passed after removing the KPI tendency line.
+- [x] 2026-03-17: `pnpm --filter web check:types` passed after removing the KPI tendency line.
 - [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/page-shell.tsx" "core/components/cycles/kpi/burndown-chart.tsx"` passed after implementing client-side label filtering.
 - [x] 2026-03-17: `pnpm --filter web check:types` passed after implementing client-side label filtering.
 - [x] 2026-03-17: `pnpm --filter web exec eslint "core/components/cycles/kpi/page-shell.tsx"` passed after replacing the project card with the business-days-left metric.
@@ -181,7 +181,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
   - y-axis: `Remaining points`
 - [x] Keep existing chart consumers working without behavioral regressions.
 - [x] Keep legend labels aligned with estimate-point language instead of work-item language on the KPI page.
-- [x] Render a KPI-only tendency line similar to the existing burndown experience without changing the shared cycle-page chart.
+- [x] Keep the KPI chart focused on current and ideal remaining points only; no tendency series.
 
 ### 7. Backend production code changes (only if truly needed)
 

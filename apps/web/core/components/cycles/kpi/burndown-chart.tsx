@@ -36,36 +36,10 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
     return Math.min(totalEstimatePoints, Math.max(0, nextCurrent));
   };
 
-  const normalizedValues = distributionKeys.map((key, index) => ({
-    index,
-    current: normalizeCurrentValue(distribution[key]),
-  }));
-
-  const tendencyAnchors = normalizedValues.filter(
-    (value): value is { index: number; current: number } => typeof value.current === "number"
-  );
-
-  const tendencyValues =
-    tendencyAnchors.length >= 2
-      ? (() => {
-          const firstPoint = tendencyAnchors[0];
-          const lastPoint = tendencyAnchors[tendencyAnchors.length - 1];
-          const slope =
-            lastPoint.index === firstPoint.index
-              ? 0
-              : (lastPoint.current - firstPoint.current) / (lastPoint.index - firstPoint.index);
-
-          return normalizedValues.map(({ index }) =>
-            Math.min(totalEstimatePoints, Math.max(0, firstPoint.current + slope * (index - firstPoint.index)))
-          );
-        })()
-      : null;
-
   const chartData = distributionKeys.map((key, index) => ({
     name: renderFormattedDateWithoutYear(key),
-    current: normalizedValues[index]?.current,
+    current: normalizeCurrentValue(distribution[key]),
     ideal: totalEstimatePoints * (1 - index / stepCount),
-    tendency: tendencyValues?.[index] ?? null,
   })) as unknown as TChartData<string, string>[];
 
   return (
@@ -97,21 +71,6 @@ export const KpiBurndownChart: React.FC<Props> = ({ distribution, totalEstimateP
             style: {
               strokeDasharray: "6, 3",
               strokeWidth: 1,
-            },
-          },
-          {
-            key: "tendency",
-            label: "Tendency remaining points",
-            strokeColor: "#F59E0B",
-            fill: "#F59E0B",
-            fillOpacity: 0,
-            showDot: false,
-            smoothCurves: false,
-            strokeOpacity: tendencyValues ? 1 : 0,
-            stackId: "bar-three",
-            style: {
-              strokeDasharray: "3, 3",
-              strokeWidth: 2,
             },
           },
         ]}
