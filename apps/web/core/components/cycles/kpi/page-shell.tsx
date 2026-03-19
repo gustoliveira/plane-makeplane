@@ -15,6 +15,7 @@ import { PageHead } from "@/components/core/page-title";
 import useCyclesDetails from "@/components/cycles/active-cycle/use-cycles-details";
 import { KpiBurndownChart } from "@/components/cycles/kpi/burndown-chart";
 import { buildCycleKpiBurndownData } from "@/components/cycles/kpi/filter-utils";
+import { MemberDropdown } from "@/components/dropdowns/member/dropdown";
 import { LabelDropdown } from "@/components/issues/issue-layouts/properties/label-dropdown";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
@@ -114,6 +115,7 @@ export const CycleKpiPageShell = observer(() => {
   const [isFilterDataLoading, setIsFilterDataLoading] = useState(true);
   const [didFilterDataFail, setDidFilterDataFail] = useState(false);
   const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
+  const [selectedAssigneeIds, setSelectedAssigneeIds] = useState<string[]>([]);
 
   useCyclesDetails({
     workspaceSlug,
@@ -184,6 +186,10 @@ export const CycleKpiPageShell = observer(() => {
     () => Array.from(new Set(cycleIssues.flatMap((issue) => issue.label_ids ?? []))),
     [cycleIssues]
   );
+  const cycleAssigneeIds = useMemo(
+    () => Array.from(new Set(cycleIssues.flatMap((issue) => issue.assignee_ids ?? []))),
+    [cycleIssues]
+  );
   const availableLabels = useMemo(
     () => projectLabels.filter((label) => cycleLabelIds.includes(label.id)),
     [projectLabels, cycleLabelIds]
@@ -198,6 +204,10 @@ export const CycleKpiPageShell = observer(() => {
       : selectedLabels.length === 1
         ? selectedLabels[0].name
         : `${selectedLabels[0].name} +${selectedLabels.length - 1}`;
+  const selectedAssigneesSummary =
+    selectedAssigneeIds.length === 0
+      ? "All users"
+      : `${selectedAssigneeIds.length} user${selectedAssigneeIds.length === 1 ? "" : "s"}`;
 
   const filteredBurndown = useMemo(() => {
     if (!cycleStartDate || !cycleEndDate || !activeEstimate) return undefined;
@@ -205,6 +215,7 @@ export const CycleKpiPageShell = observer(() => {
     return buildCycleKpiBurndownData({
       issues: cycleIssues,
       selectedLabelIds,
+      selectedAssigneeIds,
       cycleStartDate,
       cycleEndDate,
       getEstimatePointValue: (estimatePointId) => {
@@ -212,7 +223,7 @@ export const CycleKpiPageShell = observer(() => {
         return Number(activeEstimate.estimatePointById(estimatePointId)?.value ?? 0);
       },
     });
-  }, [cycleIssues, selectedLabelIds, cycleStartDate, cycleEndDate, activeEstimate]);
+  }, [cycleIssues, selectedLabelIds, selectedAssigneeIds, cycleStartDate, cycleEndDate, activeEstimate]);
 
   const defaultTotalEstimatePoints =
     cycle?.progress_snapshot?.total_estimate_points ?? cycle?.total_estimate_points ?? 0;
@@ -242,6 +253,11 @@ export const CycleKpiPageShell = observer(() => {
     const availableLabelSet = new Set(availableLabels.map((label) => label.id));
     setSelectedLabelIds((currentLabelIds) => currentLabelIds.filter((labelId) => availableLabelSet.has(labelId)));
   }, [availableLabels]);
+
+  useEffect(() => {
+    const availableAssigneeSet = new Set(cycleAssigneeIds);
+    setSelectedAssigneeIds((currentIds) => currentIds.filter((id) => availableAssigneeSet.has(id)));
+  }, [cycleAssigneeIds]);
 
   if (!cycle && isCycleLoading) {
     return (
@@ -310,7 +326,19 @@ export const CycleKpiPageShell = observer(() => {
               </p>
             </div>
 
-            <div className="flex flex-shrink-0 items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <MemberDropdown
+                value={selectedAssigneeIds}
+                onChange={setSelectedAssigneeIds}
+                projectId={projectId}
+                placeholder="Assignees"
+                multiple
+                disabled={isFilterDataLoading || cycleAssigneeIds.length === 0}
+                buttonClassName="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-custom-text-100"
+                buttonVariant="transparent-without-text"
+                button={<span className="max-w-[180px] truncate text-sm">{selectedAssigneesSummary}</span>}
+                optionsClassName="w-64"
+              />
               <LabelDropdown
                 projectId={null}
                 value={selectedLabelIds}
@@ -321,11 +349,14 @@ export const CycleKpiPageShell = observer(() => {
                 buttonClassName="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-custom-text-100"
                 optionsClassName="w-64"
               />
-              {selectedLabelIds.length > 0 && (
+              {(selectedLabelIds.length > 0 || selectedAssigneeIds.length > 0) && (
                 <button
                   type="button"
                   className="flex items-center gap-1 rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-xs font-medium text-custom-text-200 transition-colors hover:text-custom-text-100"
-                  onClick={() => setSelectedLabelIds([])}
+                  onClick={() => {
+                    setSelectedLabelIds([]);
+                    setSelectedAssigneeIds([]);
+                  }}
                 >
                   <X className="h-3 w-3" />
                   Clear
@@ -336,9 +367,7 @@ export const CycleKpiPageShell = observer(() => {
 
           <div className="mt-4 flex items-center justify-between gap-3 rounded-[10px] border border-custom-border-200 bg-custom-background-90 px-4 py-3 text-sm text-custom-text-300">
             <span>
-              {selectedLabels.length > 0
-                ? `Filtering by ${selectedLabels.map((label) => label.name).join(", ")}`
-                : "Showing all work items"}
+              {selectedLabels.length > 0 || selectedAssigneeIds.length > 0 ? "Filtered view" : "Showing all work items"}
             </span>
             <span>
               {availableLabels.length > 0
@@ -378,25 +407,25 @@ export const CycleKpiPageShell = observer(() => {
               </Loader>
             ) : didFilterDataFail ? (
               <div className="space-y-3">
-                <p className="text-sm font-medium text-custom-text-100">Label-filter data could not be prepared.</p>
+                <p className="text-sm font-medium text-custom-text-100">Filter data could not be prepared.</p>
                 <p className="text-sm text-custom-text-300">
-                  The KPI route loaded successfully, but the client-side issue data required for label filtering could
-                  not be loaded.
+                  The KPI route loaded successfully, but the client-side issue data required for filtering could not be
+                  loaded.
                 </p>
               </div>
-            ) : selectedLabelIds.length > 0 && matchingIssuesCount === 0 ? (
+            ) : (selectedLabelIds.length > 0 || selectedAssigneeIds.length > 0) && matchingIssuesCount === 0 ? (
               <div className="space-y-3">
-                <p className="text-sm font-medium text-custom-text-100">No work items match the selected labels.</p>
+                <p className="text-sm font-medium text-custom-text-100">No work items match the active filters.</p>
                 <p className="text-sm text-custom-text-300">
-                  Try a different label combination or clear the filter to return to the full cycle burndown.
+                  Try a different filter combination or clear the filters to return to the full cycle burndown.
                 </p>
               </div>
             ) : !hasEstimatePoints || matchingEstimatedIssuesCount === 0 ? (
               <div className="space-y-3">
                 <p className="text-sm font-medium text-custom-text-100">No estimate points available yet.</p>
                 <p className="text-sm text-custom-text-300">
-                  {selectedLabelIds.length > 0
-                    ? "The selected labels do not have any estimated work items available for the burndown chart."
+                  {selectedLabelIds.length > 0 || selectedAssigneeIds.length > 0
+                    ? "The selected filters do not have any estimated work items available for the burndown chart."
                     : "Add estimates to the cycle work items to generate the first burndown view for this KPI screen."}
                 </p>
               </div>
@@ -405,8 +434,8 @@ export const CycleKpiPageShell = observer(() => {
                 <div>
                   <p className="text-sm font-medium text-custom-text-100">Burndown chart</p>
                   <p className="text-sm text-custom-text-300">
-                    {selectedLabelIds.length > 0
-                      ? "Based only on estimate points from work items that match the selected labels."
+                    {selectedLabelIds.length > 0 || selectedAssigneeIds.length > 0
+                      ? "Based only on estimate points from work items that match the active filters."
                       : "Based only on estimate points from completed work items for this release."}
                   </p>
                 </div>

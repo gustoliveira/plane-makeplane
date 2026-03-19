@@ -4,6 +4,7 @@ import { getDate } from "@plane/utils";
 type TBuildCycleKpiBurndownParams = {
   issues: TIssue[];
   selectedLabelIds: string[];
+  selectedAssigneeIds: string[];
   cycleStartDate: Date;
   cycleEndDate: Date;
   getEstimatePointValue: (estimatePointId: string | null) => number;
@@ -46,15 +47,19 @@ const getDateRange = (startDate: Date, endDate: Date) => {
 export const buildCycleKpiBurndownData = ({
   issues,
   selectedLabelIds,
+  selectedAssigneeIds,
   cycleStartDate,
   cycleEndDate,
   getEstimatePointValue,
 }: TBuildCycleKpiBurndownParams): TCycleKpiBurndownData => {
   const selectedLabelSet = new Set(selectedLabelIds);
+  const selectedAssigneeSet = new Set(selectedAssigneeIds);
   const today = normalizeDate(new Date());
   const chartCutoffDate = cycleEndDate < today ? normalizeDate(cycleEndDate) : today;
   const matchingIssues = issues.filter(
-    (issue) => selectedLabelSet.size === 0 || issue.label_ids?.some((labelId) => selectedLabelSet.has(labelId))
+    (issue) =>
+      (selectedLabelSet.size === 0 || issue.label_ids?.some((labelId) => selectedLabelSet.has(labelId))) &&
+      (selectedAssigneeSet.size === 0 || issue.assignee_ids?.some((assigneeId) => selectedAssigneeSet.has(assigneeId)))
   );
 
   const estimatedIssues = matchingIssues
