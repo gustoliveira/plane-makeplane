@@ -282,6 +282,7 @@ export const CycleKpiPageShell = observer(() => {
   const pendingEstimatePoints = filteredBurndown?.currentRemainingEstimatePoints ?? defaultPendingEstimatePoints;
   const matchingIssuesCount = filteredBurndown?.matchingIssuesCount ?? 0;
   const matchingEstimatedIssuesCount = filteredBurndown?.matchingEstimatedIssuesCount ?? 0;
+  const unestimatedIssuesCount = Math.max(0, matchingIssuesCount - matchingEstimatedIssuesCount);
   const labelPointsChartData = labelPointsData?.data ?? [];
   const labelPointsMatchingIssuesCount = labelPointsData?.matchingIssuesCount ?? 0;
   const labelPointsMatchingEstimatedIssuesCount = labelPointsData?.matchingEstimatedIssuesCount ?? 0;
@@ -354,7 +355,9 @@ export const CycleKpiPageShell = observer(() => {
       <PageHead title={pageTitle} />
       <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-6 py-6">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-custom-primary-100">Cycle Key Performance Indicators</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-custom-primary-100">
+            Cycle Key Performance Indicators
+          </p>
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold text-custom-text-100">{cycle.name}</h1>
           </div>
@@ -434,9 +437,15 @@ export const CycleKpiPageShell = observer(() => {
             <KpiStat label="Estimate scope" value={`${totalEstimatePoints} points`} />
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-3">
+          <div className={`mt-3 grid ${selectedAssigneeIds.length > 0 ? "grid-cols-3" : "grid-cols-2"} gap-3`}>
             <KpiStat label="Completed" value={`${completedEstimatePoints} points`} />
             <KpiStat label="Remaining" value={`${pendingEstimatePoints} points`} />
+            {selectedAssigneeIds.length > 0 && (
+              <KpiStat
+                label="Without estimate"
+                value={`${unestimatedIssuesCount} ticket${unestimatedIssuesCount === 1 ? "" : "s"}`}
+              />
+            )}
           </div>
 
           <div className="mt-6 rounded-[10px] border border-dashed border-custom-border-200 bg-custom-background-90 p-6">

@@ -60,6 +60,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-19: Revised the bar-chart time-cap implementation in `apps/web/core/components/cycles/kpi/filter-utils.ts` to match burndown math: label KPI now stays aligned with burndown scope, while status KPI keeps full scope but moves issues completed after cutoff into a dedicated `Completed after cycle end` bucket so burndown remaining points are represented instead of disappearing. Updated KPI explanatory copy in `apps/web/core/components/cycles/kpi/page-shell.tsx`. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-19: Removed the extra late-completion status bucket from Status KPI and reworked `apps/web/core/components/cycles/kpi/filter-utils.ts` so issues completed after the burndown cutoff are reclassified into an existing in-cycle state (started/unstarted/backlog fallback) instead of creating a new column, keeping points-by-status aligned with burndown completion logic without introducing synthetic status labels. Updated status KPI copy in `apps/web/core/components/cycles/kpi/page-shell.tsx`. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-19: Added issue-level hover details for bar charts by enriching KPI aggregation outputs with per-bucket issue summaries in `apps/web/core/components/cycles/kpi/filter-utils.ts` and wiring custom tooltip content in `apps/web/core/components/cycles/kpi/label-points-chart.tsx` and `apps/web/core/components/cycles/kpi/state-points-chart.tsx` to show issue lists for the hovered bar. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/label-points-chart.tsx`, `apps/web/core/components/cycles/kpi/state-points-chart.tsx`, `PLAN.md`.
+- [x] 2026-03-20: Added a conditional KPI stat card in `apps/web/core/components/cycles/kpi/page-shell.tsx` that appears when user filtering is active and shows the count of filtered tickets without estimate points, positioned next to Remaining in the burndown stats row. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -122,6 +123,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-19: `pnpm --filter web check:types` passed after removing the extra late-completion status column and reclassifying late completions into existing in-cycle states.
 - [x] 2026-03-19: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/label-points-chart.tsx" "core/components/cycles/kpi/state-points-chart.tsx"` passed after adding issue-list tooltip details to both KPI bar charts.
 - [x] 2026-03-19: `pnpm --filter web check:types` passed after adding issue-list tooltip details to both KPI bar charts.
+- [x] 2026-03-20: `pnpm --filter web exec eslint "core/components/cycles/kpi/page-shell.tsx"` passed after adding the conditional "Without estimate" KPI stat for user-filtered views.
+- [x] 2026-03-20: `pnpm --filter web check:types` passed after adding the conditional "Without estimate" KPI stat for user-filtered views.
 
 ## Investigation Summary
 
@@ -274,6 +277,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] Keep bar-chart totals reconcilable with burndown cards by preserving burndown scope in bar charts and representing post-cutoff completions explicitly in status KPIs instead of silently excluding those points.
 - [x] Keep points-by-status aligned with burndown completion rules without creating synthetic/new status columns for late completions.
 - [x] Show issue-level details in bar-chart tooltips (at least for points-by-status) so hovering a bar reveals which issues compose that bucket.
+- [x] When user filtering is active, show a dedicated KPI card beside Remaining with the count of filtered tickets that do not have estimate points.
 
 ## Automated Test Checklist
 
