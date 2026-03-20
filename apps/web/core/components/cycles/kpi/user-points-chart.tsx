@@ -7,6 +7,7 @@ import type { TCycleKpiUserPointsItem, TCycleKpiUserStatusSeriesItem } from "@/c
 
 type TUserPointsChartDatum = TChartData<"name", string> & {
   key: string;
+  displayName: string;
   issueCount: number;
   unestimatedIssueCount: number;
   estimatedPoints: number;
@@ -20,15 +21,18 @@ type Props = {
   className?: string;
 };
 
-const TiltedUserXAxisTick = React.memo<{ x?: number; y?: number; payload?: { value: string } }>(
-  ({ x = 0, y = 0, payload }) => (
-    <g transform={`translate(${x},${y})`}>
-      <text transform="rotate(-35)" textAnchor="end" dy={14} className="fill-custom-text-300 text-xs">
-        {payload?.value}
-      </text>
-    </g>
-  )
-);
+const TiltedUserXAxisTick = React.memo<{
+  x?: number;
+  y?: number;
+  payload?: { value: string };
+  labelMap?: Record<string, string>;
+}>(({ x = 0, y = 0, payload, labelMap }) => (
+  <g transform={`translate(${x},${y})`}>
+    <text transform="rotate(-35)" textAnchor="end" dy={14} className="fill-custom-text-300 text-xs">
+      {(payload?.value && labelMap?.[payload.value]) || payload?.value}
+    </text>
+  </g>
+));
 TiltedUserXAxisTick.displayName = "TiltedUserXAxisTick";
 
 export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, className = "" }) => {
@@ -40,7 +44,8 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
 
     return {
       key: item.key,
-      name: item.name,
+      name: item.key,
+      displayName: item.name,
       issueCount: item.issueCount,
       unestimatedIssueCount: item.unestimatedIssueCount,
       estimatedPoints: item.estimatedPoints,
@@ -50,15 +55,18 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
     };
   }) as TUserPointsChartDatum[];
   const minChartWidth = Math.max(760, chartData.length * 85);
-  const xAxisTicks = chartData.map((item) => item.name);
+  const xAxisTicks = chartData.map((item) => item.key);
+  const labelMap = chartData.reduce<Record<string, string>>((acc, item) => {
+    acc[item.key] = item.displayName;
+    return acc;
+  }, {});
   const userXAxis = {
     key: "name",
-    label: "Users",
-    dy: 48,
+    dy: 24,
     interval: 0,
     minTickGap: 0,
     ticks: xAxisTicks,
-  } as unknown as { key: "name"; label: string; dy: number };
+  } as unknown as { key: "name"; dy: number };
 
   return (
     <div className={`w-full ${className}`}>
@@ -87,7 +95,14 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
               dx: -24,
               allowDecimals: false,
             }}
-            customTicks={{ x: TiltedUserXAxisTick as React.ComponentType<unknown> }}
+            customTicks={{
+              x: ((props: unknown) => (
+                <TiltedUserXAxisTick
+                  {...(props as { x?: number; y?: number; payload?: { value: string } })}
+                  labelMap={labelMap}
+                />
+              )) as React.ComponentType<unknown>,
+            }}
             customTooltipContent={({ active, payload }) => {
               const chartItem = Array.isArray(payload)
                 ? (payload?.[0]?.payload as TUserPointsChartDatum | undefined)
@@ -104,7 +119,7 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
               return (
                 <div className="max-h-[44vh] w-[19rem] space-y-2 overflow-y-auto rounded-md border border-custom-border-200 bg-custom-background-100 p-3 shadow-custom-shadow-4">
                   <p className="border-b border-custom-border-200 pb-2 text-xs font-medium text-custom-text-100">
-                    {chartItem.name}
+                    {chartItem.displayName}
                   </p>
                   <p className="text-xs text-custom-text-300">
                     Total issues: <span className="font-medium text-custom-text-100">{chartItem.issueCount}</span>

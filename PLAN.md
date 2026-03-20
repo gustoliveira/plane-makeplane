@@ -67,6 +67,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-20: Improved points-by-user readability in `apps/web/core/components/cycles/kpi/user-points-chart.tsx` by adding horizontal scroll with dynamic minimum chart width so all user labels remain accessible and by increasing per-column spacing using narrower bar width. Touched files: `apps/web/core/components/cycles/kpi/user-points-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-20: Refined points-by-user x-axis readability in `apps/web/core/components/cycles/kpi/user-points-chart.tsx` by tilting member labels and tightening column spacing (smaller gap) while keeping horizontal scroll for dense datasets. Touched files: `apps/web/core/components/cycles/kpi/user-points-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-20: Ensured all user names render on points-by-user x-axis by forcing full x-axis ticks (interval/minTickGap/ticks wiring in `packages/propel/src/charts/bar-chart/root.tsx`) and kept status legend/title outside the horizontal scroll area via an external legend in `apps/web/core/components/cycles/kpi/user-points-chart.tsx`. Also tuned column density to keep smaller gaps. Touched files: `packages/propel/src/charts/bar-chart/root.tsx`, `apps/web/core/components/cycles/kpi/user-points-chart.tsx`, `PLAN.md`.
+- [x] 2026-03-20: Finalized points-by-user axis rendering to guarantee all users are shown by switching the x-axis category key to stable user IDs and rendering display names via a custom rotated tick label map in `apps/web/core/components/cycles/kpi/user-points-chart.tsx`; removed the x-axis title text (`Users`) as requested. Status legend remains outside the scrollable chart region. Touched files: `apps/web/core/components/cycles/kpi/user-points-chart.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -143,6 +144,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-20: `pnpm --filter web check:types` passed after tilting user labels and reducing gaps between user columns.
 - [x] 2026-03-20: `pnpm --filter web exec eslint "core/components/cycles/kpi/user-points-chart.tsx" "../../packages/propel/src/charts/bar-chart/root.tsx"` passed after forcing all x-axis user ticks and moving status legend outside the scrollable chart area.
 - [x] 2026-03-20: `pnpm --filter web check:types` passed after forcing all x-axis user ticks and moving status legend outside the scrollable chart area.
+- [x] 2026-03-20: `pnpm --filter web exec eslint "core/components/cycles/kpi/user-points-chart.tsx"` passed after switching x-axis categories to user IDs and mapping all visible tick labels to display names.
+- [x] 2026-03-20: `pnpm --filter web check:types` passed after switching x-axis categories to user IDs and mapping all visible tick labels to display names.
 
 ## Investigation Summary
 
@@ -302,6 +305,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] Improve points-by-user x-axis usability for many members by enabling horizontal scrolling and increasing spacing between user columns.
 - [x] Improve points-by-user readability by tilting member labels and slightly reducing gaps between columns.
 - [x] Always display all user names on the points-by-user axis (no interleaving/skipped ticks) and keep status legend labels outside the horizontal scroll container.
+- [x] Remove the `Users` x-axis title from points-by-user and guarantee all user labels are rendered without category collisions.
 
 ## Automated Test Checklist
 
