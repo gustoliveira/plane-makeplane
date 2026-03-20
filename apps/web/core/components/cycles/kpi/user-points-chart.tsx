@@ -20,6 +20,17 @@ type Props = {
   className?: string;
 };
 
+const TiltedUserXAxisTick = React.memo<{ x?: number; y?: number; payload?: { value: string } }>(
+  ({ x = 0, y = 0, payload }) => (
+    <g transform={`translate(${x},${y})`}>
+      <text transform="rotate(-35)" textAnchor="end" dy={14} className="fill-custom-text-300 text-xs">
+        {payload?.value}
+      </text>
+    </g>
+  )
+);
+TiltedUserXAxisTick.displayName = "TiltedUserXAxisTick";
+
 export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, className = "" }) => {
   const chartData = data.map((item) => {
     const stateCounts = statusSeries.reduce<Record<string, number>>((acc, seriesItem) => {
@@ -38,7 +49,7 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
       ...stateCounts,
     };
   }) as TUserPointsChartDatum[];
-  const minChartWidth = Math.max(900, chartData.length * 120);
+  const minChartWidth = Math.max(760, chartData.length * 95);
 
   return (
     <div className={`w-full overflow-x-auto pb-2 ${className}`}>
@@ -56,9 +67,9 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
             showTopBorderRadius: () => true,
             showBottomBorderRadius: () => true,
           }))}
-          barSize={26}
-          margin={{ bottom: 30 }}
-          xAxis={{ key: "name", label: "Users", dy: 30 }}
+          barSize={30}
+          margin={{ bottom: 56 }}
+          xAxis={{ key: "name", label: "Users", dy: 48 }}
           yAxis={{
             key: statusSeries[0]?.key ?? "issueCount",
             label: "Issue count",
@@ -66,6 +77,7 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
             dx: -24,
             allowDecimals: false,
           }}
+          customTicks={{ x: TiltedUserXAxisTick as React.ComponentType<unknown> }}
           legend={{ align: "center", verticalAlign: "bottom", layout: "horizontal" }}
           customTooltipContent={({ active, payload }) => {
             const chartItem = Array.isArray(payload)
