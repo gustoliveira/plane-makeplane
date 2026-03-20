@@ -437,15 +437,13 @@ export const CycleKpiPageShell = observer(() => {
             <KpiStat label="Estimate scope" value={`${totalEstimatePoints} points`} />
           </div>
 
-          <div className={`mt-3 grid ${selectedAssigneeIds.length > 0 ? "grid-cols-3" : "grid-cols-2"} gap-3`}>
+          <div className="mt-3 grid grid-cols-3 gap-3">
             <KpiStat label="Completed" value={`${completedEstimatePoints} points`} />
             <KpiStat label="Remaining" value={`${pendingEstimatePoints} points`} />
-            {selectedAssigneeIds.length > 0 && (
-              <KpiStat
-                label="Without estimate"
-                value={`${unestimatedIssuesCount} ticket${unestimatedIssuesCount === 1 ? "" : "s"}`}
-              />
-            )}
+            <KpiStat
+              label="Without estimate"
+              value={`${unestimatedIssuesCount} ticket${unestimatedIssuesCount === 1 ? "" : "s"}`}
+            />
           </div>
 
           <div className="mt-6 rounded-[10px] border border-dashed border-custom-border-200 bg-custom-background-90 p-6">
