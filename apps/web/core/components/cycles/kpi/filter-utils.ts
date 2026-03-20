@@ -70,7 +70,6 @@ const NO_LABEL_KEY = "__no_label__";
 const UNKNOWN_LABEL_KEY = "__unknown_label__";
 const NO_STATE_KEY = "__no_state__";
 const UNKNOWN_STATE_KEY = "__unknown_state__";
-const LATE_COMPLETED_STATE_KEY = "__late_completed_state__";
 const DEFAULT_BAR_COLOR = "#3F76FF";
 
 const getDateKey = (date: Date) => {
@@ -95,6 +94,14 @@ const matchesAssigneeFilter = (issue: TIssue, selectedAssigneeSet: Set<string>) 
 
 const matchesLabelFilter = (issue: TIssue, selectedLabelSet: Set<string>) =>
   selectedLabelSet.size === 0 || issue.label_ids?.some((labelId) => selectedLabelSet.has(labelId));
+
+const isCompletedLikeGroup = (group: string | null | undefined) => group === "completed" || group === "cancelled";
+
+const getLateCompletionFallbackStateId = (projectStates: IState[]) =>
+  projectStates.find((state) => state.group === "started")?.id ??
+  projectStates.find((state) => state.group === "unstarted")?.id ??
+  projectStates.find((state) => state.group === "backlog")?.id ??
+  undefined;
 
 const getDateRange = (startDate: Date, endDate: Date) => {
   const dates: Date[] = [];
@@ -266,6 +273,7 @@ export const buildCycleKpiStatePointsData = ({
     (issue) => matchesLabelFilter(issue, selectedLabelSet) && matchesAssigneeFilter(issue, selectedAssigneeSet)
   );
   const stateById = new Map(projectStates.map((state) => [state.id, state]));
+  const lateCompletionFallbackStateId = getLateCompletionFallbackStateId(projectStates);
   const statePointsMap = new Map<string, { points: number; issueIds: Set<string> }>();
 
   let matchingEstimatedIssuesCount = 0;
@@ -277,16 +285,13 @@ export const buildCycleKpiStatePointsData = ({
     matchingEstimatedIssuesCount += 1;
 
     const completedDate = getDate(issue.completed_at);
-    if (completedDate && completedDate > chartCutoffDate) {
-      const current = statePointsMap.get(LATE_COMPLETED_STATE_KEY) ?? { points: 0, issueIds: new Set<string>() };
-      current.points += estimatePoints;
-      current.issueIds.add(issue.id);
-      statePointsMap.set(LATE_COMPLETED_STATE_KEY, current);
-      return;
-    }
-
+    const issueState = issue.state_id ? stateById.get(issue.state_id) : undefined;
+    const issueGroup = issueState?.group ?? issue.state__group;
+    const isLateCompletion = !!completedDate && completedDate > chartCutoffDate && isCompletedLikeGroup(issueGroup);
     let stateKey = NO_STATE_KEY;
-    if (issue.state_id) {
+    if (isLateCompletion) {
+      stateKey = lateCompletionFallbackStateId ?? NO_STATE_KEY;
+    } else if (issue.state_id) {
       stateKey = stateById.has(issue.state_id) ? issue.state_id : UNKNOWN_STATE_KEY;
     }
 
@@ -313,16 +318,6 @@ export const buildCycleKpiStatePointsData = ({
           key: stateKey,
           name: "Unknown state",
           color: DEFAULT_BAR_COLOR,
-          points: aggregate.points,
-          issueCount: aggregate.issueIds.size,
-        };
-      }
-
-      if (stateKey === LATE_COMPLETED_STATE_KEY) {
-        return {
-          key: stateKey,
-          name: "Completed after cycle end",
-          color: "#F59E0B",
           points: aggregate.points,
           issueCount: aggregate.issueIds.size,
         };

@@ -592,8 +592,7 @@ export const CycleKpiPageShell = observer(() => {
               <h2 className="text-lg font-semibold text-custom-text-100">Points by status</h2>
               <p className="max-w-2xl text-sm text-custom-text-300">
                 This chart groups estimate points by workflow state (for example To Do, Done, Blocked, Cancelled, and
-                custom states like Refinement or Acceptance). Work completed after the burndown cutoff is grouped as
-                Completed after cycle end.
+                custom states like Refinement or Acceptance) using burndown-aligned completion cutoff logic.
               </p>
             </div>
 
@@ -640,8 +639,8 @@ export const CycleKpiPageShell = observer(() => {
                   <p className="text-sm font-medium text-custom-text-100">Points by status chart</p>
                   <p className="text-sm text-custom-text-300">
                     {selectedAssigneeIds.length > 0 || selectedLabelIds.length > 0
-                      ? "Only estimated work items matching the active filters are included; late completions are separated."
-                      : "All estimated work items are included; late completions are separated."}
+                      ? "Only estimated work items matching the active filters are included."
+                      : "All estimated work items in the cycle are included."}
                   </p>
                 </div>
                 <KpiStatePointsChart data={statePointsChartData} className="min-h-[350px]" />

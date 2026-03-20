@@ -58,6 +58,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-19: Aligned Label KPI empty/no-match messaging in `apps/web/core/components/cycles/kpi/page-shell.tsx` to reference active filters (members + labels) instead of members-only wording, matching the filter behavior now shared by burndown, label, and status charts. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-19: Time-capped both bar-chart KPIs (label/status) to the same burndown cutoff logic in `apps/web/core/components/cycles/kpi/filter-utils.ts` by excluding items completed after the burndown cutoff date from bar aggregations, and wired `cycleEndDate` into both builders in `apps/web/core/components/cycles/kpi/page-shell.tsx`. Updated KPI copy to clarify time-capped behavior. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-19: Revised the bar-chart time-cap implementation in `apps/web/core/components/cycles/kpi/filter-utils.ts` to match burndown math: label KPI now stays aligned with burndown scope, while status KPI keeps full scope but moves issues completed after cutoff into a dedicated `Completed after cycle end` bucket so burndown remaining points are represented instead of disappearing. Updated KPI explanatory copy in `apps/web/core/components/cycles/kpi/page-shell.tsx`. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
+- [x] 2026-03-19: Removed the extra late-completion status bucket from Status KPI and reworked `apps/web/core/components/cycles/kpi/filter-utils.ts` so issues completed after the burndown cutoff are reclassified into an existing in-cycle state (started/unstarted/backlog fallback) instead of creating a new column, keeping points-by-status aligned with burndown completion logic without introducing synthetic status labels. Updated status KPI copy in `apps/web/core/components/cycles/kpi/page-shell.tsx`. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -116,6 +117,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-19: `pnpm --filter web check:types` passed after adding burndown-style time-capping to label/status KPI charts.
 - [x] 2026-03-19: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/page-shell.tsx"` passed after revising status KPI to bucket late completions instead of dropping them.
 - [x] 2026-03-19: `pnpm --filter web check:types` passed after revising status KPI to bucket late completions instead of dropping them.
+- [x] 2026-03-19: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/page-shell.tsx"` passed after removing the extra late-completion status column and reclassifying late completions into existing in-cycle states.
+- [x] 2026-03-19: `pnpm --filter web check:types` passed after removing the extra late-completion status column and reclassifying late completions into existing in-cycle states.
 
 ## Investigation Summary
 
@@ -266,6 +269,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] Add a points-by-status bar chart block below Label KPI and scope it to the same active KPI filters (members and labels), while supporting custom project states.
 - [x] Ensure both bar-chart KPIs (points by label and points by status) apply the same burndown time-cap semantics so work completed after cycle end does not appear in those bar-chart totals.
 - [x] Keep bar-chart totals reconcilable with burndown cards by preserving burndown scope in bar charts and representing post-cutoff completions explicitly in status KPIs instead of silently excluding those points.
+- [x] Keep points-by-status aligned with burndown completion rules without creating synthetic/new status columns for late completions.
 
 ## Automated Test Checklist
 
