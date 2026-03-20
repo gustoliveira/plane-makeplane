@@ -44,6 +44,7 @@ export type TCycleKpiLabelPointsItem = {
   color: string;
   points: number;
   issueCount: number;
+  issues: TCycleKpiIssueSummary[];
 };
 
 export type TCycleKpiLabelPointsData = {
@@ -58,6 +59,13 @@ export type TCycleKpiStatePointsItem = {
   color: string;
   points: number;
   issueCount: number;
+  issues: TCycleKpiIssueSummary[];
+};
+
+export type TCycleKpiIssueSummary = {
+  id: string;
+  sequenceId: number;
+  name: string;
 };
 
 export type TCycleKpiStatePointsData = {
@@ -102,6 +110,12 @@ const getLateCompletionFallbackStateId = (projectStates: IState[]) =>
   projectStates.find((state) => state.group === "unstarted")?.id ??
   projectStates.find((state) => state.group === "backlog")?.id ??
   undefined;
+
+const getIssueSummary = (issue: TIssue): TCycleKpiIssueSummary => ({
+  id: issue.id,
+  sequenceId: issue.sequence_id,
+  name: issue.name,
+});
 
 const getDateRange = (startDate: Date, endDate: Date) => {
   const dates: Date[] = [];
@@ -195,7 +209,7 @@ export const buildCycleKpiLabelPointsData = ({
     (issue) => matchesLabelFilter(issue, selectedLabelSet) && matchesAssigneeFilter(issue, selectedAssigneeSet)
   );
   const labelById = new Map(projectLabels.map((label) => [label.id, label]));
-  const labelPointsMap = new Map<string, { points: number; issueIds: Set<string> }>();
+  const labelPointsMap = new Map<string, { points: number; issueIds: Set<string>; issues: TCycleKpiIssueSummary[] }>();
 
   let matchingEstimatedIssuesCount = 0;
 
@@ -211,9 +225,16 @@ export const buildCycleKpiLabelPointsData = ({
     labelIdsToAggregate.forEach((labelId) => {
       const aggregationKey =
         labelId === NO_LABEL_KEY ? NO_LABEL_KEY : labelById.has(labelId) ? labelId : UNKNOWN_LABEL_KEY;
-      const current = labelPointsMap.get(aggregationKey) ?? { points: 0, issueIds: new Set<string>() };
+      const current = labelPointsMap.get(aggregationKey) ?? {
+        points: 0,
+        issueIds: new Set<string>(),
+        issues: [],
+      };
       current.points += estimatePoints;
-      current.issueIds.add(issue.id);
+      if (!current.issueIds.has(issue.id)) {
+        current.issueIds.add(issue.id);
+        current.issues.push(getIssueSummary(issue));
+      }
       labelPointsMap.set(aggregationKey, current);
     });
   });
@@ -227,6 +248,7 @@ export const buildCycleKpiLabelPointsData = ({
           color: DEFAULT_BAR_COLOR,
           points: aggregate.points,
           issueCount: aggregate.issueIds.size,
+          issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
         };
       }
 
@@ -237,6 +259,7 @@ export const buildCycleKpiLabelPointsData = ({
           color: DEFAULT_BAR_COLOR,
           points: aggregate.points,
           issueCount: aggregate.issueIds.size,
+          issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
         };
       }
 
@@ -247,6 +270,7 @@ export const buildCycleKpiLabelPointsData = ({
         color: label?.color ?? DEFAULT_BAR_COLOR,
         points: aggregate.points,
         issueCount: aggregate.issueIds.size,
+        issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
       };
     })
     .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
@@ -274,7 +298,7 @@ export const buildCycleKpiStatePointsData = ({
   );
   const stateById = new Map(projectStates.map((state) => [state.id, state]));
   const lateCompletionFallbackStateId = getLateCompletionFallbackStateId(projectStates);
-  const statePointsMap = new Map<string, { points: number; issueIds: Set<string> }>();
+  const statePointsMap = new Map<string, { points: number; issueIds: Set<string>; issues: TCycleKpiIssueSummary[] }>();
 
   let matchingEstimatedIssuesCount = 0;
 
@@ -295,9 +319,16 @@ export const buildCycleKpiStatePointsData = ({
       stateKey = stateById.has(issue.state_id) ? issue.state_id : UNKNOWN_STATE_KEY;
     }
 
-    const current = statePointsMap.get(stateKey) ?? { points: 0, issueIds: new Set<string>() };
+    const current = statePointsMap.get(stateKey) ?? {
+      points: 0,
+      issueIds: new Set<string>(),
+      issues: [],
+    };
     current.points += estimatePoints;
-    current.issueIds.add(issue.id);
+    if (!current.issueIds.has(issue.id)) {
+      current.issueIds.add(issue.id);
+      current.issues.push(getIssueSummary(issue));
+    }
     statePointsMap.set(stateKey, current);
   });
 
@@ -310,6 +341,7 @@ export const buildCycleKpiStatePointsData = ({
           color: DEFAULT_BAR_COLOR,
           points: aggregate.points,
           issueCount: aggregate.issueIds.size,
+          issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
         };
       }
 
@@ -320,6 +352,7 @@ export const buildCycleKpiStatePointsData = ({
           color: DEFAULT_BAR_COLOR,
           points: aggregate.points,
           issueCount: aggregate.issueIds.size,
+          issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
         };
       }
 
@@ -330,6 +363,7 @@ export const buildCycleKpiStatePointsData = ({
         color: state?.color ?? DEFAULT_BAR_COLOR,
         points: aggregate.points,
         issueCount: aggregate.issueIds.size,
+        issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
       };
     })
     .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
