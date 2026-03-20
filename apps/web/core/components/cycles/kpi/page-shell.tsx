@@ -288,7 +288,6 @@ export const CycleKpiPageShell = observer(() => {
   const labelPointsMatchingEstimatedIssuesCount = labelPointsData?.matchingEstimatedIssuesCount ?? 0;
   const statePointsChartData = statePointsData?.data ?? [];
   const statePointsMatchingIssuesCount = statePointsData?.matchingIssuesCount ?? 0;
-  const statePointsMatchingEstimatedIssuesCount = statePointsData?.matchingEstimatedIssuesCount ?? 0;
   const burndownDistribution = filteredBurndown?.distribution;
   const hasBurndownDistribution = !!burndownDistribution && Object.keys(burndownDistribution).length > 0;
   const hasEstimatePoints = totalEstimatePoints > 0;
@@ -613,23 +612,14 @@ export const CycleKpiPageShell = observer(() => {
                   Update the filter selection or clear filters to view points grouped by status.
                 </p>
               </div>
-            ) : statePointsMatchingEstimatedIssuesCount === 0 ? (
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-custom-text-100">No estimate points available yet.</p>
-                <p className="text-sm text-custom-text-300">
-                  {selectedAssigneeIds.length > 0 || selectedLabelIds.length > 0
-                    ? "The selected filters do not have any estimated work items to chart by status."
-                    : "Add estimates to cycle work items to render points grouped by status."}
-                </p>
-              </div>
             ) : statePointsChartData.length > 0 ? (
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium text-custom-text-100">Points by status chart</p>
                   <p className="text-sm text-custom-text-300">
                     {selectedAssigneeIds.length > 0 || selectedLabelIds.length > 0
-                      ? "Only estimated work items matching the active filters are included."
-                      : "All estimated work items in the cycle are included."}
+                      ? "All work items matching the active filters are included. * marks statuses with unestimated issues."
+                      : "All cycle work items are included. * marks statuses with unestimated issues."}
                   </p>
                 </div>
                 <KpiStatePointsChart data={statePointsChartData} className="min-h-[350px]" />

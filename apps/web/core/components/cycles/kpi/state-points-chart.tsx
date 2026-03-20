@@ -8,6 +8,7 @@ import type { TCycleKpiStatePointsItem } from "@/components/cycles/kpi/filter-ut
 type TStatePointsChartDatum = TChartData<"name", "points"> & {
   key: string;
   color: string;
+  unestimatedIssueCount: number;
   issues: TCycleKpiStatePointsItem["issues"];
 };
 
@@ -22,6 +23,7 @@ export const KpiStatePointsChart: React.FC<Props> = ({ data, className = "" }) =
     name: item.name,
     points: item.points,
     color: item.color,
+    unestimatedIssueCount: item.unestimatedIssueCount,
     issues: item.issues,
   })) as TStatePointsChartDatum[];
 
@@ -62,6 +64,10 @@ export const KpiStatePointsChart: React.FC<Props> = ({ data, className = "" }) =
               </p>
               <p className="text-xs text-custom-text-300">
                 Estimate points: <span className="font-medium text-custom-text-100">{chartItem.points}</span>
+              </p>
+              <p className="text-xs text-custom-text-300">
+                Unestimated issues:{" "}
+                <span className="font-medium text-custom-text-100">{chartItem.unestimatedIssueCount}</span>
               </p>
               <p className="text-xs text-custom-text-300">Issues ({chartItem.issues.length})</p>
 

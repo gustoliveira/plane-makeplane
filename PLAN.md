@@ -62,6 +62,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-19: Added issue-level hover details for bar charts by enriching KPI aggregation outputs with per-bucket issue summaries in `apps/web/core/components/cycles/kpi/filter-utils.ts` and wiring custom tooltip content in `apps/web/core/components/cycles/kpi/label-points-chart.tsx` and `apps/web/core/components/cycles/kpi/state-points-chart.tsx` to show issue lists for the hovered bar. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/label-points-chart.tsx`, `apps/web/core/components/cycles/kpi/state-points-chart.tsx`, `PLAN.md`.
 - [x] 2026-03-20: Added a conditional KPI stat card in `apps/web/core/components/cycles/kpi/page-shell.tsx` that appears when user filtering is active and shows the count of filtered tickets without estimate points, positioned next to Remaining in the burndown stats row. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-20: Changed the `Without estimate` KPI stat in `apps/web/core/components/cycles/kpi/page-shell.tsx` to be always visible (not conditional on user filtering), keeping it fixed next to Completed and Remaining while still using the currently active filter scope for its count. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
+- [x] 2026-03-20: Updated points-by-status aggregation and rendering to include statuses that only contain unestimated issues (0 points), append `*` to status labels with unestimated work, and expose unestimated issue counts in status-chart hover tooltips. Implemented in `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/state-points-chart.tsx`, and `apps/web/core/components/cycles/kpi/page-shell.tsx`. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/state-points-chart.tsx`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -128,6 +129,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-20: `pnpm --filter web check:types` passed after adding the conditional "Without estimate" KPI stat for user-filtered views.
 - [x] 2026-03-20: `pnpm --filter web exec eslint "core/components/cycles/kpi/page-shell.tsx"` passed after making the `Without estimate` KPI stat always visible.
 - [x] 2026-03-20: `pnpm --filter web check:types` passed after making the `Without estimate` KPI stat always visible.
+- [x] 2026-03-20: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/state-points-chart.tsx" "core/components/cycles/kpi/page-shell.tsx"` passed after adding status `*` markers and unestimated counts in points-by-status tooltips.
+- [x] 2026-03-20: `pnpm --filter web check:types` passed after adding status `*` markers and unestimated counts in points-by-status tooltips.
 
 ## Investigation Summary
 
@@ -282,6 +285,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] Show issue-level details in bar-chart tooltips (at least for points-by-status) so hovering a bar reveals which issues compose that bucket.
 - [x] When user filtering is active, show a dedicated KPI card beside Remaining with the count of filtered tickets that do not have estimate points.
 - [x] Keep the `Without estimate` KPI card fixed/always visible in the burndown stats row, not only in user-filtered mode.
+- [x] In points-by-status, include statuses even when all their issues are unestimated (0 points), mark such statuses with `*`, and show unestimated issue counts in hover tooltips.
 
 ## Automated Test Checklist
 

@@ -59,6 +59,7 @@ export type TCycleKpiStatePointsItem = {
   color: string;
   points: number;
   issueCount: number;
+  unestimatedIssueCount: number;
   issues: TCycleKpiIssueSummary[];
 };
 
@@ -298,15 +299,22 @@ export const buildCycleKpiStatePointsData = ({
   );
   const stateById = new Map(projectStates.map((state) => [state.id, state]));
   const lateCompletionFallbackStateId = getLateCompletionFallbackStateId(projectStates);
-  const statePointsMap = new Map<string, { points: number; issueIds: Set<string>; issues: TCycleKpiIssueSummary[] }>();
+  const statePointsMap = new Map<
+    string,
+    {
+      points: number;
+      issueIds: Set<string>;
+      issues: TCycleKpiIssueSummary[];
+      unestimatedIssueCount: number;
+    }
+  >();
 
   let matchingEstimatedIssuesCount = 0;
 
   matchingIssues.forEach((issue) => {
     const estimatePoints = getEstimatePointValue(issue.estimate_point);
-    if (estimatePoints <= 0) return;
-
-    matchingEstimatedIssuesCount += 1;
+    const isEstimated = estimatePoints > 0;
+    if (isEstimated) matchingEstimatedIssuesCount += 1;
 
     const completedDate = getDate(issue.completed_at);
     const issueState = issue.state_id ? stateById.get(issue.state_id) : undefined;
@@ -323,8 +331,13 @@ export const buildCycleKpiStatePointsData = ({
       points: 0,
       issueIds: new Set<string>(),
       issues: [],
+      unestimatedIssueCount: 0,
     };
-    current.points += estimatePoints;
+    if (isEstimated) {
+      current.points += estimatePoints;
+    } else {
+      current.unestimatedIssueCount += 1;
+    }
     if (!current.issueIds.has(issue.id)) {
       current.issueIds.add(issue.id);
       current.issues.push(getIssueSummary(issue));
@@ -335,34 +348,40 @@ export const buildCycleKpiStatePointsData = ({
   const data = Array.from(statePointsMap.entries())
     .map(([stateKey, aggregate]) => {
       if (stateKey === NO_STATE_KEY) {
+        const stateName = "No state";
         return {
           key: stateKey,
-          name: "No state",
+          name: aggregate.unestimatedIssueCount > 0 ? `${stateName}*` : stateName,
           color: DEFAULT_BAR_COLOR,
           points: aggregate.points,
           issueCount: aggregate.issueIds.size,
+          unestimatedIssueCount: aggregate.unestimatedIssueCount,
           issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
         };
       }
 
       if (stateKey === UNKNOWN_STATE_KEY) {
+        const stateName = "Unknown state";
         return {
           key: stateKey,
-          name: "Unknown state",
+          name: aggregate.unestimatedIssueCount > 0 ? `${stateName}*` : stateName,
           color: DEFAULT_BAR_COLOR,
           points: aggregate.points,
           issueCount: aggregate.issueIds.size,
+          unestimatedIssueCount: aggregate.unestimatedIssueCount,
           issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
         };
       }
 
       const state = stateById.get(stateKey);
+      const stateName = state?.name ?? "Unknown state";
       return {
         key: stateKey,
-        name: state?.name ?? "Unknown state",
+        name: aggregate.unestimatedIssueCount > 0 ? `${stateName}*` : stateName,
         color: state?.color ?? DEFAULT_BAR_COLOR,
         points: aggregate.points,
         issueCount: aggregate.issueIds.size,
+        unestimatedIssueCount: aggregate.unestimatedIssueCount,
         issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
       };
     })
