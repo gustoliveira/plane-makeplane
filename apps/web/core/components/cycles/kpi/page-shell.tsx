@@ -354,25 +354,16 @@ export const CycleKpiPageShell = observer(() => {
       <PageHead title={pageTitle} />
       <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-6 py-6">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-custom-primary-100">Cycle KPI</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-custom-primary-100">Cycle Key Performance Indicators</p>
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold text-custom-text-100">{cycle.name}</h1>
-            <p className="text-sm text-custom-text-300">
-              The first KPI view shows a burndown chart based on estimate points, using the existing cycle analytics
-              pipeline already available in the project cycle detail flow.
-            </p>
           </div>
         </div>
 
         <section className="rounded-[10px] border border-custom-border-200 bg-custom-background-100 p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-custom-primary-100">Burndown KPI</p>
               <h2 className="text-lg font-semibold text-custom-text-100">Estimate-point burndown</h2>
-              <p className="max-w-2xl text-sm text-custom-text-300">
-                Remaining points are calculated from the sum of work-item estimates. In this first version, cancelled
-                work items do not burn down the chart.
-              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -519,11 +510,7 @@ export const CycleKpiPageShell = observer(() => {
         <section className="rounded-[10px] border border-custom-border-200 bg-custom-background-100 p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-custom-primary-100">Label KPI</p>
               <h2 className="text-lg font-semibold text-custom-text-100">Points by label</h2>
-              <p className="max-w-2xl text-sm text-custom-text-300">
-                This chart groups estimate points by label and uses the same active filter scope as Burndown KPI.
-              </p>
             </div>
 
             <div className="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-sm text-custom-text-300">
@@ -588,12 +575,7 @@ export const CycleKpiPageShell = observer(() => {
         <section className="rounded-[10px] border border-custom-border-200 bg-custom-background-100 p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-custom-primary-100">Status KPI</p>
               <h2 className="text-lg font-semibold text-custom-text-100">Points by status</h2>
-              <p className="max-w-2xl text-sm text-custom-text-300">
-                This chart groups estimate points by workflow state (for example To Do, Done, Blocked, Cancelled, and
-                custom states like Refinement or Acceptance) using burndown-aligned completion cutoff logic.
-              </p>
             </div>
 
             <div className="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-sm text-custom-text-300">
