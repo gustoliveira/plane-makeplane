@@ -146,6 +146,9 @@ export const BarChart = React.memo(<K extends string, T extends string>(props: T
               className: AXIS_LABEL_CLASSNAME,
             }}
             tickCount={tickCount.x}
+            interval={(xAxis as any).interval}
+            minTickGap={(xAxis as any).minTickGap}
+            ticks={(xAxis as any).ticks}
           />
           <YAxis
             domain={yAxis.domain}
