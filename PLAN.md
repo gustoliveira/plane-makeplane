@@ -64,6 +64,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-20: Changed the `Without estimate` KPI stat in `apps/web/core/components/cycles/kpi/page-shell.tsx` to be always visible (not conditional on user filtering), keeping it fixed next to Completed and Remaining while still using the currently active filter scope for its count. Touched files: `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-20: Updated points-by-status aggregation and rendering to include statuses that only contain unestimated issues (0 points), append `*` to status labels with unestimated work, and expose unestimated issue counts in status-chart hover tooltips. Implemented in `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/state-points-chart.tsx`, and `apps/web/core/components/cycles/kpi/page-shell.tsx`. Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/state-points-chart.tsx`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
 - [x] 2026-03-20: Added a new `Points by user` KPI block below points-by-status with a stacked bar chart that aggregates per-user status counts in each bar and keeps unestimated visibility by marking users with `*` and showing unestimated counts in tooltip details. Implemented in `apps/web/core/components/cycles/kpi/filter-utils.ts`, new `apps/web/core/components/cycles/kpi/user-points-chart.tsx`, and `apps/web/core/components/cycles/kpi/page-shell.tsx` (including project member fetch for display names). Touched files: `apps/web/core/components/cycles/kpi/filter-utils.ts`, `apps/web/core/components/cycles/kpi/user-points-chart.tsx`, `apps/web/core/components/cycles/kpi/page-shell.tsx`, `PLAN.md`.
+- [x] 2026-03-20: Improved points-by-user readability in `apps/web/core/components/cycles/kpi/user-points-chart.tsx` by adding horizontal scroll with dynamic minimum chart width so all user labels remain accessible and by increasing per-column spacing using narrower bar width. Touched files: `apps/web/core/components/cycles/kpi/user-points-chart.tsx`, `PLAN.md`.
 
 ## Test Log
 
@@ -134,6 +135,8 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] 2026-03-20: `pnpm --filter web check:types` passed after adding status `*` markers and unestimated counts in points-by-status tooltips.
 - [x] 2026-03-20: `pnpm --filter web exec eslint "core/components/cycles/kpi/filter-utils.ts" "core/components/cycles/kpi/user-points-chart.tsx" "core/components/cycles/kpi/page-shell.tsx"` passed after adding points-by-user stacked status chart and unestimated markers.
 - [x] 2026-03-20: `pnpm --filter web check:types` passed after adding points-by-user stacked status chart and unestimated markers.
+- [x] 2026-03-20: `pnpm --filter web exec eslint "core/components/cycles/kpi/user-points-chart.tsx"` passed after adding horizontal scroll and larger user-column spacing to points-by-user.
+- [x] 2026-03-20: `pnpm --filter web check:types` passed after adding horizontal scroll and larger user-column spacing to points-by-user.
 
 ## Investigation Summary
 
@@ -290,6 +293,7 @@ The first KPI view must show a burndown chart based on estimate points, not tick
 - [x] Keep the `Without estimate` KPI card fixed/always visible in the burndown stats row, not only in user-filtered mode.
 - [x] In points-by-status, include statuses even when all their issues are unestimated (0 points), mark such statuses with `*`, and show unestimated issue counts in hover tooltips.
 - [x] Add a points-by-user block below points-by-status as a stacked bar chart by status counts per user, and keep unestimated visibility (markers + tooltip count) for users.
+- [x] Improve points-by-user x-axis usability for many members by enabling horizontal scrolling and increasing spacing between user columns.
 
 ## Automated Test Checklist
 
