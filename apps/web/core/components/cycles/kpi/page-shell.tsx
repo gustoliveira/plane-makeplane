@@ -18,15 +18,18 @@ import {
   buildCycleKpiBurndownData,
   buildCycleKpiLabelPointsData,
   buildCycleKpiStatePointsData,
+  buildCycleKpiUserPointsData,
 } from "@/components/cycles/kpi/filter-utils";
 import { KpiLabelPointsChart } from "@/components/cycles/kpi/label-points-chart";
 import { KpiStatePointsChart } from "@/components/cycles/kpi/state-points-chart";
+import { KpiUserPointsChart } from "@/components/cycles/kpi/user-points-chart";
 import { MemberDropdown } from "@/components/dropdowns/member/dropdown";
 import { LabelDropdown } from "@/components/issues/issue-layouts/properties/label-dropdown";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useLabel } from "@/hooks/store/use-label";
+import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -108,6 +111,9 @@ export const CycleKpiPageShell = observer(() => {
   const { getCycleById, fetchCycleDetails } = useCycle();
   const { fetchProjectLabels, getProjectLabels } = useLabel();
   const { fetchProjectStates, getProjectStates } = useProjectState();
+  const {
+    project: { fetchProjectMembers, getProjectMemberDetails },
+  } = useMember();
   const { getProjectById } = useProject();
   const { currentActiveEstimateIdByProjectId, getEstimateById, getProjectEstimates } = useProjectEstimates();
 
@@ -165,6 +171,7 @@ export const CycleKpiPageShell = observer(() => {
       fetchAllCycleIssues(workspaceSlug, projectId, cycleId),
       fetchProjectLabels(workspaceSlug, projectId),
       fetchProjectStates(workspaceSlug, projectId),
+      fetchProjectMembers(workspaceSlug, projectId),
       getProjectEstimates(workspaceSlug, projectId),
     ])
       .then(([issues]) => {
@@ -183,7 +190,15 @@ export const CycleKpiPageShell = observer(() => {
     return () => {
       isMounted = false;
     };
-  }, [workspaceSlug, projectId, cycleId, fetchProjectLabels, fetchProjectStates, getProjectEstimates]);
+  }, [
+    workspaceSlug,
+    projectId,
+    cycleId,
+    fetchProjectLabels,
+    fetchProjectStates,
+    fetchProjectMembers,
+    getProjectEstimates,
+  ]);
 
   const pageTitle = useMemo(() => {
     if (project?.name && cycle?.name) return `${project.name} - ${cycle.name} KPI`;
@@ -268,6 +283,32 @@ export const CycleKpiPageShell = observer(() => {
     });
   }, [cycleIssues, projectStates, selectedLabelIds, selectedAssigneeIds, cycleEndDate, activeEstimate]);
 
+  const userPointsData = useMemo(() => {
+    if (!activeEstimate || !cycleEndDate) return undefined;
+
+    return buildCycleKpiUserPointsData({
+      issues: cycleIssues,
+      projectStates,
+      selectedLabelIds,
+      selectedAssigneeIds,
+      cycleEndDate,
+      getEstimatePointValue: (estimatePointId) => {
+        if (!estimatePointId) return 0;
+        return Number(activeEstimate.estimatePointById(estimatePointId)?.value ?? 0);
+      },
+      getUserDisplayName: (userId) => getProjectMemberDetails(userId, projectId)?.member.display_name,
+    });
+  }, [
+    cycleIssues,
+    projectStates,
+    selectedLabelIds,
+    selectedAssigneeIds,
+    cycleEndDate,
+    activeEstimate,
+    getProjectMemberDetails,
+    projectId,
+  ]);
+
   const defaultTotalEstimatePoints =
     cycle?.progress_snapshot?.total_estimate_points ?? cycle?.total_estimate_points ?? 0;
   const defaultCompletedEstimatePoints =
@@ -288,6 +329,9 @@ export const CycleKpiPageShell = observer(() => {
   const labelPointsMatchingEstimatedIssuesCount = labelPointsData?.matchingEstimatedIssuesCount ?? 0;
   const statePointsChartData = statePointsData?.data ?? [];
   const statePointsMatchingIssuesCount = statePointsData?.matchingIssuesCount ?? 0;
+  const userPointsChartData = userPointsData?.data ?? [];
+  const userPointsStatusSeries = userPointsData?.statusSeries ?? [];
+  const userPointsMatchingIssuesCount = userPointsData?.matchingIssuesCount ?? 0;
   const burndownDistribution = filteredBurndown?.distribution;
   const hasBurndownDistribution = !!burndownDistribution && Object.keys(burndownDistribution).length > 0;
   const hasEstimatePoints = totalEstimatePoints > 0;
@@ -629,6 +673,66 @@ export const CycleKpiPageShell = observer(() => {
                 <p className="text-sm font-medium text-custom-text-100">State points data is not available.</p>
                 <p className="text-sm text-custom-text-300">
                   The KPI route loaded, but the points-by-status chart could not be rendered for this cycle.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-[10px] border border-custom-border-200 bg-custom-background-100 p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold text-custom-text-100">Points by user</h2>
+            </div>
+
+            <div className="rounded-md border border-custom-border-200 bg-custom-background-90 px-3 py-2 text-sm text-custom-text-300">
+              {`Members: ${selectedAssigneesSummary} • Labels: ${selectedLabelSummary}`}
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-[10px] border border-dashed border-custom-border-200 bg-custom-background-90 p-6">
+            {isFilterDataLoading ? (
+              <Loader className="space-y-3">
+                <Loader.Item height="16px" width="240px" />
+                <Loader.Item height="16px" width="100%" />
+                <Loader.Item height="140px" width="100%" />
+              </Loader>
+            ) : didFilterDataFail ? (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-custom-text-100">User points could not be prepared.</p>
+                <p className="text-sm text-custom-text-300">
+                  The KPI route loaded, but issue/member data required to build the points-by-user chart is unavailable.
+                </p>
+              </div>
+            ) : (selectedAssigneeIds.length > 0 || selectedLabelIds.length > 0) &&
+              userPointsMatchingIssuesCount === 0 ? (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-custom-text-100">No work items match the active filters.</p>
+                <p className="text-sm text-custom-text-300">
+                  Update the filter selection or clear filters to view points grouped by user.
+                </p>
+              </div>
+            ) : userPointsChartData.length > 0 && userPointsStatusSeries.length > 0 ? (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-custom-text-100">Points by user chart</p>
+                  <p className="text-sm text-custom-text-300">
+                    {selectedAssigneeIds.length > 0 || selectedLabelIds.length > 0
+                      ? "Each user bar stacks issue counts by status for work matching active filters. * marks users with unestimated issues."
+                      : "Each user bar stacks issue counts by status for all cycle work. * marks users with unestimated issues."}
+                  </p>
+                </div>
+                <KpiUserPointsChart
+                  data={userPointsChartData}
+                  statusSeries={userPointsStatusSeries}
+                  className="min-h-[380px]"
+                />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-custom-text-100">User points data is not available.</p>
+                <p className="text-sm text-custom-text-300">
+                  The KPI route loaded, but the points-by-user chart could not be rendered for this cycle.
                 </p>
               </div>
             )}

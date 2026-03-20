@@ -27,6 +27,16 @@ type TBuildCycleKpiStatePointsParams = {
   getEstimatePointValue: (estimatePointId: string | null) => number;
 };
 
+type TBuildCycleKpiUserPointsParams = {
+  issues: TIssue[];
+  projectStates: IState[];
+  selectedLabelIds: string[];
+  selectedAssigneeIds: string[];
+  cycleEndDate: Date;
+  getEstimatePointValue: (estimatePointId: string | null) => number;
+  getUserDisplayName: (userId: string) => string | undefined;
+};
+
 export type TCycleKpiBurndownData = {
   distribution: TCycleCompletionChartDistribution;
   totalEstimatePoints: number;
@@ -75,10 +85,33 @@ export type TCycleKpiStatePointsData = {
   matchingEstimatedIssuesCount: number;
 };
 
+export type TCycleKpiUserStatusSeriesItem = {
+  key: string;
+  name: string;
+  color: string;
+};
+
+export type TCycleKpiUserPointsItem = {
+  key: string;
+  name: string;
+  issueCount: number;
+  unestimatedIssueCount: number;
+  estimatedPoints: number;
+  stateIssueCounts: Record<string, number>;
+  issues: TCycleKpiIssueSummary[];
+};
+
+export type TCycleKpiUserPointsData = {
+  data: TCycleKpiUserPointsItem[];
+  statusSeries: TCycleKpiUserStatusSeriesItem[];
+  matchingIssuesCount: number;
+};
+
 const NO_LABEL_KEY = "__no_label__";
 const UNKNOWN_LABEL_KEY = "__unknown_label__";
 const NO_STATE_KEY = "__no_state__";
 const UNKNOWN_STATE_KEY = "__unknown_state__";
+const NO_ASSIGNEE_KEY = "__no_assignee__";
 const DEFAULT_BAR_COLOR = "#3F76FF";
 
 const getDateKey = (date: Date) => {
@@ -117,6 +150,50 @@ const getIssueSummary = (issue: TIssue): TCycleKpiIssueSummary => ({
   sequenceId: issue.sequence_id,
   name: issue.name,
 });
+
+const resolveStateKeyForIssue = ({
+  issue,
+  chartCutoffDate,
+  stateById,
+  lateCompletionFallbackStateId,
+}: {
+  issue: TIssue;
+  chartCutoffDate: Date;
+  stateById: Map<string, IState>;
+  lateCompletionFallbackStateId?: string;
+}) => {
+  const completedDate = getDate(issue.completed_at);
+  const issueState = issue.state_id ? stateById.get(issue.state_id) : undefined;
+  const issueGroup = issueState?.group ?? issue.state__group;
+  const isLateCompletion = !!completedDate && completedDate > chartCutoffDate && isCompletedLikeGroup(issueGroup);
+
+  if (isLateCompletion) return lateCompletionFallbackStateId ?? NO_STATE_KEY;
+  if (!issue.state_id) return NO_STATE_KEY;
+
+  return stateById.has(issue.state_id) ? issue.state_id : UNKNOWN_STATE_KEY;
+};
+
+const getStateMeta = (stateKey: string, stateById: Map<string, IState>) => {
+  if (stateKey === NO_STATE_KEY) {
+    return {
+      name: "No state",
+      color: DEFAULT_BAR_COLOR,
+    };
+  }
+
+  if (stateKey === UNKNOWN_STATE_KEY) {
+    return {
+      name: "Unknown state",
+      color: DEFAULT_BAR_COLOR,
+    };
+  }
+
+  const state = stateById.get(stateKey);
+  return {
+    name: state?.name ?? "Unknown state",
+    color: state?.color ?? DEFAULT_BAR_COLOR,
+  };
+};
 
 const getDateRange = (startDate: Date, endDate: Date) => {
   const dates: Date[] = [];
@@ -315,17 +392,12 @@ export const buildCycleKpiStatePointsData = ({
     const estimatePoints = getEstimatePointValue(issue.estimate_point);
     const isEstimated = estimatePoints > 0;
     if (isEstimated) matchingEstimatedIssuesCount += 1;
-
-    const completedDate = getDate(issue.completed_at);
-    const issueState = issue.state_id ? stateById.get(issue.state_id) : undefined;
-    const issueGroup = issueState?.group ?? issue.state__group;
-    const isLateCompletion = !!completedDate && completedDate > chartCutoffDate && isCompletedLikeGroup(issueGroup);
-    let stateKey = NO_STATE_KEY;
-    if (isLateCompletion) {
-      stateKey = lateCompletionFallbackStateId ?? NO_STATE_KEY;
-    } else if (issue.state_id) {
-      stateKey = stateById.has(issue.state_id) ? issue.state_id : UNKNOWN_STATE_KEY;
-    }
+    const stateKey = resolveStateKeyForIssue({
+      issue,
+      chartCutoffDate,
+      stateById,
+      lateCompletionFallbackStateId,
+    });
 
     const current = statePointsMap.get(stateKey) ?? {
       points: 0,
@@ -347,38 +419,11 @@ export const buildCycleKpiStatePointsData = ({
 
   const data = Array.from(statePointsMap.entries())
     .map(([stateKey, aggregate]) => {
-      if (stateKey === NO_STATE_KEY) {
-        const stateName = "No state";
-        return {
-          key: stateKey,
-          name: aggregate.unestimatedIssueCount > 0 ? `${stateName}*` : stateName,
-          color: DEFAULT_BAR_COLOR,
-          points: aggregate.points,
-          issueCount: aggregate.issueIds.size,
-          unestimatedIssueCount: aggregate.unestimatedIssueCount,
-          issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
-        };
-      }
-
-      if (stateKey === UNKNOWN_STATE_KEY) {
-        const stateName = "Unknown state";
-        return {
-          key: stateKey,
-          name: aggregate.unestimatedIssueCount > 0 ? `${stateName}*` : stateName,
-          color: DEFAULT_BAR_COLOR,
-          points: aggregate.points,
-          issueCount: aggregate.issueIds.size,
-          unestimatedIssueCount: aggregate.unestimatedIssueCount,
-          issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
-        };
-      }
-
-      const state = stateById.get(stateKey);
-      const stateName = state?.name ?? "Unknown state";
+      const stateMeta = getStateMeta(stateKey, stateById);
       return {
         key: stateKey,
-        name: aggregate.unestimatedIssueCount > 0 ? `${stateName}*` : stateName,
-        color: state?.color ?? DEFAULT_BAR_COLOR,
+        name: aggregate.unestimatedIssueCount > 0 ? `${stateMeta.name}*` : stateMeta.name,
+        color: stateMeta.color,
         points: aggregate.points,
         issueCount: aggregate.issueIds.size,
         unestimatedIssueCount: aggregate.unestimatedIssueCount,
@@ -391,5 +436,110 @@ export const buildCycleKpiStatePointsData = ({
     data,
     matchingIssuesCount: matchingIssues.length,
     matchingEstimatedIssuesCount,
+  };
+};
+
+export const buildCycleKpiUserPointsData = ({
+  issues,
+  projectStates,
+  selectedLabelIds,
+  selectedAssigneeIds,
+  cycleEndDate,
+  getEstimatePointValue,
+  getUserDisplayName,
+}: TBuildCycleKpiUserPointsParams): TCycleKpiUserPointsData => {
+  const selectedLabelSet = new Set(selectedLabelIds);
+  const selectedAssigneeSet = new Set(selectedAssigneeIds);
+  const chartCutoffDate = getChartCutoffDate(cycleEndDate);
+  const matchingIssues = issues.filter(
+    (issue) => matchesLabelFilter(issue, selectedLabelSet) && matchesAssigneeFilter(issue, selectedAssigneeSet)
+  );
+  const stateById = new Map(projectStates.map((state) => [state.id, state]));
+  const lateCompletionFallbackStateId = getLateCompletionFallbackStateId(projectStates);
+  const userPointsMap = new Map<
+    string,
+    {
+      name: string;
+      issueIds: Set<string>;
+      issues: TCycleKpiIssueSummary[];
+      unestimatedIssueCount: number;
+      estimatedPoints: number;
+      stateIssueCounts: Record<string, number>;
+    }
+  >();
+  const encounteredStateKeys = new Set<string>();
+
+  matchingIssues.forEach((issue) => {
+    const estimatePoints = getEstimatePointValue(issue.estimate_point);
+    const isEstimated = estimatePoints > 0;
+    const stateKey = resolveStateKeyForIssue({
+      issue,
+      chartCutoffDate,
+      stateById,
+      lateCompletionFallbackStateId,
+    });
+
+    encounteredStateKeys.add(stateKey);
+
+    const issueAssigneeIds = issue.assignee_ids?.length ? Array.from(new Set(issue.assignee_ids)) : [NO_ASSIGNEE_KEY];
+
+    issueAssigneeIds.forEach((assigneeId) => {
+      const assigneeName =
+        assigneeId === NO_ASSIGNEE_KEY ? "Unassigned" : (getUserDisplayName(assigneeId) ?? "Unknown user");
+
+      const current = userPointsMap.get(assigneeId) ?? {
+        name: assigneeName,
+        issueIds: new Set<string>(),
+        issues: [],
+        unestimatedIssueCount: 0,
+        estimatedPoints: 0,
+        stateIssueCounts: {},
+      };
+
+      current.stateIssueCounts[stateKey] = (current.stateIssueCounts[stateKey] ?? 0) + 1;
+
+      if (!current.issueIds.has(issue.id)) {
+        current.issueIds.add(issue.id);
+        current.issues.push(getIssueSummary(issue));
+        if (!isEstimated) {
+          current.unestimatedIssueCount += 1;
+        }
+      }
+
+      if (isEstimated) {
+        current.estimatedPoints += estimatePoints;
+      }
+
+      userPointsMap.set(assigneeId, current);
+    });
+  });
+
+  const statusSeries = Array.from(encounteredStateKeys)
+    .map((stateKey) => {
+      const stateMeta = getStateMeta(stateKey, stateById);
+      return {
+        key: stateKey,
+        name: stateMeta.name,
+        color: stateMeta.color,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const data = Array.from(userPointsMap.entries())
+    .map(([userId, aggregate]) => ({
+      key: userId,
+      name: aggregate.unestimatedIssueCount > 0 ? `${aggregate.name}*` : aggregate.name,
+      issueCount: aggregate.issueIds.size,
+      unestimatedIssueCount: aggregate.unestimatedIssueCount,
+      estimatedPoints: aggregate.estimatedPoints,
+      stateIssueCounts: aggregate.stateIssueCounts,
+      issues: [...aggregate.issues].sort((a, b) => a.sequenceId - b.sequenceId),
+    }))
+    .sort((a, b) => b.issueCount - a.issueCount || a.name.localeCompare(b.name));
+
+  return {
+    data,
+    statusSeries,
+    matchingIssuesCount: matchingIssues.length,
   };
 };
