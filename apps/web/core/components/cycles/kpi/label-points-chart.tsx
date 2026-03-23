@@ -16,6 +16,22 @@ type Props = {
   className?: string;
 };
 
+const TiltedXAxisTick = React.memo<{
+  x?: number;
+  y?: number;
+  payload?: { value: string };
+}>(({ x = 0, y = 0, payload }) => {
+  if (!payload?.value) return null;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text transform="rotate(-35)" textAnchor="end" dy={14} dx={-4} className="fill-custom-text-300 text-xs">
+        {payload.value}
+      </text>
+    </g>
+  );
+});
+TiltedXAxisTick.displayName = "TiltedXAxisTick";
+
 export const KpiLabelPointsChart: React.FC<Props> = ({ data, className = "" }) => {
   const chartData = data.map((item) => ({
     key: item.key,
@@ -42,9 +58,15 @@ export const KpiLabelPointsChart: React.FC<Props> = ({ data, className = "" }) =
             showBottomBorderRadius: () => true,
           },
         ]}
-        margin={{ bottom: 30 }}
-        xAxis={{ key: "name", label: "Labels", dy: 30 }}
+        margin={{ bottom: 80 }}
+        xAxis={
+          { key: "name", dy: 16, interval: 0, minTickGap: 0, ticks: chartData.map((d) => d.name) } as unknown as {
+            key: "name";
+            dy: number;
+          }
+        }
         yAxis={{ key: "points", label: "Estimate points", offset: -58, dx: -24, allowDecimals: true }}
+        customTicks={{ x: TiltedXAxisTick as React.ComponentType<unknown> }}
         customTooltipContent={({ active, payload }) => {
           const chartItem = Array.isArray(payload)
             ? (payload?.[0]?.payload as TLabelPointsChartDatum | undefined)
