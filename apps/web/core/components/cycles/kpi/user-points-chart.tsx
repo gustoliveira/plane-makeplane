@@ -21,23 +21,8 @@ type Props = {
   className?: string;
 };
 
-const TiltedUserXAxisTick = React.memo<{
-  x?: number;
-  y?: number;
-  payload?: { value: string };
-  labelMap?: Record<string, string>;
-}>(({ x = 0, y = 0, payload, labelMap }) => {
-  if (!payload?.value) return null;
-  const label = labelMap?.[payload.value] || payload.value;
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text transform="rotate(-35)" textAnchor="end" dy={14} dx={-4} className="fill-custom-text-300 text-xs">
-        {label}
-      </text>
-    </g>
-  );
-});
-TiltedUserXAxisTick.displayName = "TiltedUserXAxisTick";
+const HiddenXAxisTick = React.memo(() => null);
+HiddenXAxisTick.displayName = "HiddenXAxisTick";
 
 export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, className = "" }) => {
   const chartData = data.map((item) => {
@@ -90,7 +75,7 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
               showBottomBorderRadius: () => true,
             }))}
             barSize={32}
-            margin={{ bottom: 80 }}
+            margin={{ bottom: 8 }}
             xAxis={userXAxis}
             yAxis={{
               key: statusSeries[0]?.key ?? "issueCount",
@@ -100,12 +85,7 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
               allowDecimals: false,
             }}
             customTicks={{
-              x: ((props: unknown) => (
-                <TiltedUserXAxisTick
-                  {...(props as { x?: number; y?: number; payload?: { value: string } })}
-                  labelMap={labelMap}
-                />
-              )) as React.ComponentType<unknown>,
+              x: HiddenXAxisTick as React.ComponentType<unknown>,
             }}
             customTooltipContent={({ active, payload }) => {
               const chartItem = Array.isArray(payload)
@@ -163,6 +143,21 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
               );
             }}
           />
+
+          <div className="px-[58px] pb-1 pt-3 h-[80px] overflow-hidden">
+            <div
+              className="grid gap-1"
+              style={{ gridTemplateColumns: `repeat(${Math.max(chartData.length, 1)}, minmax(0, 1fr))` }}
+            >
+              {chartData.map((item) => (
+                <div key={item.key} className="flex justify-center">
+                  <span className="block origin-top-right -rotate-[35deg] whitespace-nowrap text-xs text-custom-text-300">
+                    {labelMap[item.key] ?? item.key}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
