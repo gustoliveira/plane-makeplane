@@ -79,7 +79,7 @@ export const KpiUserPointsChart: React.FC<Props> = ({ data, statusSeries, classN
             xAxis={userXAxis}
             yAxis={{
               key: statusSeries[0]?.key ?? "issueCount",
-              label: "Issue count",
+              label: "Points",
               offset: -58,
               dx: -24,
               allowDecimals: false,
